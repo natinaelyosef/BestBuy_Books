@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class ChatConversation extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'customer_id',
+        'assigned_admin_id',
+        'subject',
+        'status',
+        'last_message_at',
+    ];
+
+    protected $casts = [
+        'last_message_at' => 'datetime',
+    ];
+
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    public function assignedAdmin()
+    {
+        return $this->belongsTo(User::class, 'assigned_admin_id');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(ChatMessage::class, 'conversation_id');
+    }
+
+    public function latestMessage()
+    {
+        return $this->hasOne(ChatMessage::class, 'conversation_id')->latestOfMany();
+    }
+}
