@@ -11,7 +11,7 @@ class EnsureAccountType
     /**
      * Handle an incoming request.
      *
-     * @param  array<int, string>  ...$types
+     * @param array<int, string> ...$types
      */
     public function handle(Request $request, Closure $next, ...$types): Response
     {

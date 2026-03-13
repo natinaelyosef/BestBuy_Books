@@ -10,12 +10,11 @@ class CustomerCartController extends Controller
     public function index(Request $request)
     {
         $cart = $this->getCart($request);
-        $items = $this->buildCartItems($cart);
-
-        $totalPrice = collect($items)->sum('price');
+        $cartItems = $this->buildCartItems($cart);
+        $totalPrice = array_sum(array_column($cartItems, 'price'));
 
         return view('customer.cart', [
-            'cartItems' => $items,
+            'cartItems' => $cartItems,
             'totalPrice' => $totalPrice,
             'checkoutUrl' => route('orders.checkout'),
         ]);
@@ -33,18 +32,16 @@ class CustomerCartController extends Controller
 
     public function remove(Request $request, $bookId, $type)
     {
-        $type = $type === 'buy' ? 'buy' : 'rent';
         $cart = $this->getCart($request);
-
-        $cart = array_values(array_filter($cart, function ($item) use ($bookId, $type) {
+        $cart = array_filter($cart, function ($item) use ($bookId, $type) {
             return !((int) $item['book_id'] === (int) $bookId && $item['type'] === $type);
-        }));
+        });
 
-        $request->session()->put('cart', $cart);
+        $request->session()->put('cart', array_values($cart));
 
         return redirect()
             ->back()
-            ->with('status', 'Item removed from cart.');
+            ->with('status', 'Book removed from cart.');
     }
 
     public function count(Request $request)
@@ -62,15 +59,24 @@ class CustomerCartController extends Controller
                 ->with('error', 'Your cart is empty.');
         }
 
-        $items = $this->buildCartItems($cart);
-        $total = collect($items)->sum('price');
+        $cartItems = $this->buildCartItems($cart);
+        $hasRent = false;
+        $hasBuy = false;
+        $total = 0;
+
+        foreach ($cartItems as $item) {
+            $total += $item['price'];
+            if ($item['type'] === 'rent') {
+                $hasRent = true;
+            } else {
+                $hasBuy = true;
+            }
+        }
 
         $orderType = 'buy';
-        $hasRent = collect($items)->contains(fn ($item) => $item['type'] === 'rent');
-        $hasBuy = collect($items)->contains(fn ($item) => $item['type'] === 'buy');
         if ($hasRent && !$hasBuy) {
             $orderType = 'rent';
-        } elseif ($hasRent && $hasBuy) {
+        } else if ($hasRent && $hasBuy) {
             $orderType = 'mixed';
         }
 
@@ -105,7 +111,7 @@ class CustomerCartController extends Controller
                     'quantity' => 1,
                     'rental_days' => $item['type'] === 'rent' ? 30 : null,
                 ];
-            }, $items),
+            }, $cartItems),
         ];
 
         $request->session()->put('orders', $orders);
@@ -150,13 +156,12 @@ class CustomerCartController extends Controller
     private function getCart(Request $request): array
     {
         $cart = $request->session()->get('cart', []);
-        return array_values(array_filter($cart, fn ($item) => isset($item['book_id'], $item['type'])));
+        return array_values(array_filter($cart, fn($item) => isset($item['book_id'], $item['type'])));
     }
 
     private function buildCartItems(array $cart): array
     {
         $items = [];
-
         foreach ($cart as $item) {
             $book = Book::find($item['book_id']);
             if (!$book) {
@@ -175,7 +180,6 @@ class CustomerCartController extends Controller
                 'price' => $price,
             ];
         }
-
         return $items;
     }
 }

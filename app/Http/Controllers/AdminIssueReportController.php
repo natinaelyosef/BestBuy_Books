@@ -15,9 +15,7 @@ class AdminIssueReportController extends Controller
             ->latest()
             ->get();
 
-        return view('admin.issue_reports.index', [
-            'reports' => $reports,
-        ]);
+        return view('admin.issue_reports.index', ['reports' => $reports]);
     }
 
     public function show(IssueReport $issueReport)

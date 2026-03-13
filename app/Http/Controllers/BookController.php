@@ -54,7 +54,7 @@ class BookController extends Controller
 
         if (($validated['available_rent'] + $validated['available_sale']) > $validated['total_copies']) {
             return back()
-                ->withErrors(['total_copies' => 'Total copies must be at least the sum of available rent and sale copies.'])
+                ->withErrors(['total_copies' => 'Total copies must be at least the sum of available rent and sale copies'])
                 ->withInput();
         }
 
@@ -106,7 +106,7 @@ class BookController extends Controller
 
         if (($validated['available_rent'] + $validated['available_sale']) > $validated['total_copies']) {
             return back()
-                ->withErrors(['total_copies' => 'Total copies must be at least the sum of available rent and sale copies.'])
+                ->withErrors(['total_copies' => 'Total copies must be at least the sum of available rent and sale copies'])
                 ->withInput();
         }
 

@@ -11,7 +11,6 @@ class AdminChatController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-
         $conversations = ChatConversation::query()
             ->with(['customer', 'latestMessage', 'assignedAdmin'])
             ->withCount([
@@ -23,9 +22,7 @@ class AdminChatController extends Controller
             ->latest('updated_at')
             ->get();
 
-        return view('admin.chats.index', [
-            'conversations' => $conversations,
-        ]);
+        return view('admin.chats.index', ['conversations' => $conversations]);
     }
 
     public function show(Request $request, ChatConversation $conversation)
@@ -48,7 +45,6 @@ class AdminChatController extends Controller
     public function sendMessage(Request $request, ChatConversation $conversation)
     {
         $user = $request->user();
-
         $data = $request->validate([
             'message' => 'required|string|max:2000',
         ]);
@@ -73,7 +69,6 @@ class AdminChatController extends Controller
     public function unreadCount(Request $request)
     {
         $user = $request->user();
-
         $count = ChatMessage::query()
             ->whereNull('read_at')
             ->where('sender_id', '!=', $user->id)
