@@ -722,41 +722,55 @@
         </div>
     </nav>
 
-    <!-- Sidebar -->
-    <div id="sidebar">
+  <div id="sidebar">
         <div class="sidebar-heading">Order Management</div>
-        <a href="#" class="sidebar-item active">
-            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+        <a href="{{ route('store.dashboard') }}" class="sidebar-item @if(request()->routeIs('store.dashboard')) active @endif">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
         </a>
-        
-        <!-- ORDER MANAGEMENT -->
-        <a href="#" class="sidebar-item">
-            <i class="bi bi-receipt"></i> <span>Order Management</span>
-            <span class="badge bg-danger ms-auto">5</span>
+        <a href="#" class="sidebar-item @if(request()->routeIs('store.orders')) active @endif">
+            <i class="bi bi-receipt"></i>
+            <span>Order Management</span>
+            @if(!empty($pendingOrdersCount))
+            <span class="badge bg-danger ms-auto">{{ $pendingOrdersCount }}</span>
+            @endif
         </a>
-        
-        <a href="#" class="sidebar-item">
-            <i class="bi bi-heart"></i> <span>Wishlisted Books</span>
-            <span class="badge bg-warning ms-auto">3</span>
+        <a href="#" class="sidebar-item @if(request()->routeIs('store.wishlist')) active @endif">
+            <i class="bi bi-heart"></i>
+            <span>Wishlisted Books</span>
+            <span class="badge bg-warning ms-auto">{{ $wishlistCount ?? 0 }}</span>
         </a>
 
         <div class="sidebar-heading">Messages Management</div>
-        <a href="#" class="sidebar-item">
+        <a class="sidebar-item @if(request()->routeIs('store.chat.*')) active @endif" 
+           href="{{ route('store.chat.index') }}">
             <i class="bi bi-chat-dots me-2"></i>
-            Messages
-            <span class="badge bg-danger ms-auto">2</span>
+            Customer Chats
+            @if(!empty($totalUnread))
+            <span class="badge bg-danger ms-auto">{{ $totalUnread }}</span>
+            @endif
+        </a>
+        <a class="sidebar-item @if(request()->routeIs('store.issue-reports.*')) active @endif" href="{{ route('store.issue-reports.index') }}">
+            <i class="bi bi-headset me-2"></i>
+            Support Chats
+        </a>
+       <a class="sidebar-item @if(request()->routeIs('store.issue-reports.create')) active @endif" href="{{ route('store.issue-reports.create') }}">
+            <i class="bi bi-flag me-2"></i>
+            Report Customer
         </a>
 
         <div class="sidebar-heading">Store Management</div>
-        <a href="{{ route('store.registration.create') }}" class="sidebar-item">
-            <i class="bi bi-cart"></i> <span>Register Store</span>
+        <a href="{{ route('store.registration.create') }}" class="sidebar-item @if(request()->routeIs('store.registration.create')) active @endif">
+            <i class="bi bi-cart"></i> 
+            <span>Register Store</span>
         </a>
-        <a href="{{ route('store.registration.view') }}" class="sidebar-item">
-            <i class="bi bi-list"></i> <span>View Stores</span>
+        <a href="{{ route('store.registration.view') }}" class="sidebar-item @if(request()->routeIs('store.registration.view')) active @endif">
+            <i class="bi bi-list"></i> 
+            <span>View Stores</span>
         </a>
-        
+
         <div class="sidebar-heading">Book Management</div>
-         <a href="{{ route('add.book.registration') }}" class="sidebar-item @if(request()->routeIs('add.book.registration')) active @endif">
+        <a href="{{ route('add.book.registration') }}" class="sidebar-item @if(request()->routeIs('add.book.registration')) active @endif">
             <i class="bi bi-plus-circle"></i>
             <span>Add Book</span>
         </a>
@@ -769,8 +783,17 @@
             <i class="bi bi-pencil-square"></i>
             <span>Manage Books</span>
         </a>
-  <!-- Logout Button in Sidebar -->
-<form method="POST" action="{{ route('logout') }}" class="w-100">
+
+        <form method="POST" action="{{ route('logout') }}" class="sidebar-item logout-bottom">
+            @csrf
+            <button type="submit" class="btn btn-link p-0 text-decoration-none d-flex align-items-center w-100" style="color: inherit; border: none; background: none;">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </button>
+        </form>
+    </div>
+
+  <form method="POST" action="{{ route('logout') }}" class="w-100">
     @csrf
     <button type="submit" class="sidebar-item logout-btn w-100">
         <i class="bi bi-box-arrow-right"></i>

@@ -14,7 +14,7 @@
         </a>
     </div>
 
-    <form method="POST" action="{{ route('issue-reports.store') }}" class="issue-form">
+    <form method="POST" action="{{ route('issue-reports.store') }}" class="issue-form" enctype="multipart/form-data">
         @csrf
         <label class="field">
             <span>Subject</span>
@@ -24,6 +24,11 @@
         <label class="field">
             <span>Description</span>
             <textarea name="description" rows="6" required maxlength="4000" placeholder="Describe the issue in detail.">{{ old('description') }}</textarea>
+        </label>
+
+        <label class="field">
+            <span>Evidence (Screenshot/File) <small style="color:var(--text-muted);font-weight:400;">Optional</small></span>
+            <input type="file" name="evidence" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt" style="background:#fff;">
         </label>
 
         <label class="field">

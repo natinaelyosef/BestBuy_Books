@@ -14,10 +14,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\CheckUserActive::class,
         ]);
 
         $middleware->alias([
             'account_type' => \App\Http\Middleware\EnsureAccountType::class,
+            'check.active' => \App\Http\Middleware\CheckUserActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -180,8 +180,11 @@
                 <a href="{{ route('admin.chats.index') }}" class="{{ request()->routeIs('admin.chats.*') ? 'active' : '' }}">
                     <i class="bi bi-chat-dots-fill"></i> Support Chats
                 </a>
+                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                    <i class="bi bi-people"></i> Site Users
+                </a>
                 <a href="{{ route('admin.admins.index') }}" class="{{ request()->routeIs('admin.admins.*') ? 'active' : '' }}">
-                    <i class="bi bi-people-fill"></i> Admin Users
+                    <i class="bi bi-person-fill-gear"></i> Admin Users
                 </a>
                 @if(auth()->user()?->account_type === 'super_admin')
                 <a href="{{ route('admin.admins.create') }}" class="{{ request()->routeIs('admin.admins.create') ? 'active' : '' }}">

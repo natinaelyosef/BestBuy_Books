@@ -19,6 +19,13 @@ class User extends Authenticatable
         'phone',
         'bio',
         'last_seen_at',
+        'is_active',
+        'is_banned',
+        'ban_reason',
+        'banned_at',
+        'warning_count',
+        'is_restricted',
+        'restricted_until',
     ];
 
     protected $hidden = [
@@ -30,6 +37,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'last_seen_at' => 'datetime',
+        'is_active' => 'boolean',
+        'is_banned' => 'boolean',
+        'is_restricted' => 'boolean',
+        'banned_at' => 'datetime',
+        'restricted_until' => 'datetime',
     ];
 
     // Add this relationship - Books owned by the user (for store owners)
@@ -70,6 +82,34 @@ class User extends Authenticatable
     public function isOnline()
     {
         return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
+    }
+
+    public function canLogin(): bool
+    {
+        return ($this->is_active ?? true) && !($this->is_banned ?? false);
+    }
+
+    public function isBanned(): bool
+    {
+        return (bool) ($this->is_banned ?? false);
+    }
+
+    public function isRestricted(): bool
+    {
+        if (!($this->is_restricted ?? false)) return false;
+        if ($this->restricted_until && $this->restricted_until->isPast()) {
+            $this->update(['is_restricted' => false, 'restricted_until' => null]);
+            return false;
+        }
+        return true;
+    }
+
+    public function statusBadge(): string
+    {
+        if ($this->isBanned()) return 'Banned';
+        if (!($this->is_active ?? true)) return 'Inactive';
+        if ($this->isRestricted()) return 'Restricted';
+        return 'Active';
     }
 
     public function unreadMessagesCount()

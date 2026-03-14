@@ -355,19 +355,19 @@
         </a>
 
         <div class="sidebar-heading">Messages Management</div>
-        <a class="sidebar-item @if(request()->routeIs('store.chat.list')) active @endif" 
-           href="#">
+        <a class="sidebar-item @if(request()->routeIs('store.chat.*')) active @endif" 
+           href="{{ route('store.chat.index') }}">
             <i class="bi bi-chat-dots me-2"></i>
             Customer Chats
             @if(!empty($totalUnread))
             <span class="badge bg-danger ms-auto">{{ $totalUnread }}</span>
             @endif
         </a>
-        <a class="sidebar-item @if(request()->routeIs('support.chat.list')) active @endif" href="#">
+        <a class="sidebar-item @if(request()->routeIs('store.issue-reports.*')) active @endif" href="{{ route('store.issue-reports.index') }}">
             <i class="bi bi-headset me-2"></i>
             Support Chats
         </a>
-       <a class="sidebar-item @if(request()->routeIs('issue.report.create') || request()->routeIs('my.issue.reports')) active @endif" href="#">
+       <a class="sidebar-item @if(request()->routeIs('store.issue-reports.create')) active @endif" href="{{ route('store.issue-reports.create') }}">
             <i class="bi bi-flag me-2"></i>
             Report Customer
         </a>

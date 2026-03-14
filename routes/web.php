@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminChatController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminIssueReportController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminUserManagementController;
 use App\Http\Controllers\CustomerBookController;
 use App\Http\Controllers\CustomerCartController;
 use App\Http\Controllers\CustomerChatController;
@@ -14,7 +15,8 @@ use App\Http\Controllers\CustomerWishlistController;
 use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreRegistrationController;
-use App\Http\Controllers\StoreChatController; // ADD THIS IMPORT
+use App\Http\Controllers\StoreIssueReportController;
+use App\Http\Controllers\StoreChatController;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -187,6 +189,13 @@ Route::middleware(['auth'])->group(function () {
     
     // Get unread count
     Route::get('/store/chat/unread-count', [StoreChatController::class, 'getUnreadCount'])->name('store.chat.unread');
+
+    // Store Issue Reports
+    Route::get('/store/issue-reports', [StoreIssueReportController::class, 'index'])->name('store.issue-reports.index');
+    Route::get('/store/issue-reports/create', [StoreIssueReportController::class, 'create'])->name('store.issue-reports.create');
+    Route::post('/store/issue-reports', [StoreIssueReportController::class, 'store'])->name('store.issue-reports.store');
+    Route::get('/store/issue-reports/{issueReport}', [StoreIssueReportController::class, 'show'])->name('store.issue-reports.show');
+
 });
 
 /*
@@ -205,13 +214,26 @@ Route::middleware(['auth', 'account_type:sub_admin,super_admin'])
         Route::get('/issue-reports', [AdminIssueReportController::class, 'index'])->name('issue-reports.index');
         Route::get('/issue-reports/{issueReport}', [AdminIssueReportController::class, 'show'])->name('issue-reports.show');
         Route::put('/issue-reports/{issueReport}', [AdminIssueReportController::class, 'update'])->name('issue-reports.update');
+        Route::post('/issue-reports/{issueReport}/ban', [AdminIssueReportController::class, 'banUser'])->name('issue-reports.ban');
+        Route::post('/issue-reports/{issueReport}/warn', [AdminIssueReportController::class, 'warnUser'])->name('issue-reports.warn');
+        Route::post('/issue-reports/{issueReport}/restrict', [AdminIssueReportController::class, 'restrictUser'])->name('issue-reports.restrict');
+        Route::post('/issue-reports/{issueReport}/resolve', [AdminIssueReportController::class, 'resolve'])->name('issue-reports.resolve');
         
         // Support Chats Management
         Route::get('/chats', [AdminChatController::class, 'index'])->name('chats.index');
         Route::get('/chats/{conversation}', [AdminChatController::class, 'show'])->name('chats.show');
         Route::post('/chats/{conversation}/message', [AdminChatController::class, 'sendMessage'])->name('chats.message');
         
-        // Admin Users Management (Super Admin only for create)
+        // Site Users Management (all customers & store owners)
+        Route::get('/users', [AdminUserManagementController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [AdminUserManagementController::class, 'show'])->name('users.show');
+        Route::post('/users/{user}/ban', [AdminUserManagementController::class, 'banUser'])->name('users.ban');
+        Route::post('/users/{user}/unban', [AdminUserManagementController::class, 'unbanUser'])->name('users.unban');
+        Route::post('/users/{user}/warn', [AdminUserManagementController::class, 'warnUser'])->name('users.warn');
+        Route::post('/users/{user}/restrict', [AdminUserManagementController::class, 'restrictUser'])->name('users.restrict');
+        Route::post('/users/{user}/unrestrict', [AdminUserManagementController::class, 'unrestrictUser'])->name('users.unrestrict');
+        
+        // Admin Users Management
         Route::get('/admins', [AdminUserController::class, 'index'])->name('admins.index');
         Route::get('/admins/create', [AdminUserController::class, 'create'])
             ->middleware('account_type:super_admin')
@@ -219,6 +241,18 @@ Route::middleware(['auth', 'account_type:sub_admin,super_admin'])
         Route::post('/admins', [AdminUserController::class, 'store'])
             ->middleware('account_type:super_admin')
             ->name('admins.store');
+        Route::get('/admins/{admin}/edit', [AdminUserController::class, 'edit'])
+            ->middleware('account_type:super_admin')
+            ->name('admins.edit');
+        Route::put('/admins/{admin}', [AdminUserController::class, 'update'])
+            ->middleware('account_type:super_admin')
+            ->name('admins.update');
+        Route::delete('/admins/{admin}', [AdminUserController::class, 'destroy'])
+            ->middleware('account_type:super_admin')
+            ->name('admins.destroy');
+        Route::post('/admins/{admin}/toggle-active', [AdminUserController::class, 'toggleActive'])
+            ->middleware('account_type:super_admin')
+            ->name('admins.toggle-active');
     });
 
 /*

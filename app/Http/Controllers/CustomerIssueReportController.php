@@ -30,15 +30,27 @@ class CustomerIssueReportController extends Controller
             'subject' => 'required|string|max:255',
             'description' => 'required|string|max:4000',
             'priority' => 'required|in:low,medium,high',
+            'evidence' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt',
         ]);
 
-        IssueReport::create([
+        $reportData = [
             'user_id' => $request->user()->id,
+            'reporter_role' => 'customer',
             'subject' => $data['subject'],
             'description' => $data['description'],
             'priority' => $data['priority'],
             'status' => 'open',
-        ]);
+        ];
+
+        if ($request->hasFile('evidence')) {
+            $file = $request->file('evidence');
+            $path = $file->store('report-evidence', 'public');
+            $reportData['evidence_path'] = $path;
+            $reportData['evidence_name'] = $file->getClientOriginalName();
+            $reportData['evidence_type'] = $file->getMimeType();
+        }
+
+        IssueReport::create($reportData);
 
         return redirect()
             ->route('issue-reports.index')

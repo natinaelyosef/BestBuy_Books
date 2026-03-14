@@ -19,6 +19,26 @@
     <div class="detail-body">
         <h3>Description</h3>
         <p>{{ $report->description }}</p>
+
+        @if($report->hasEvidence())
+            <hr style="margin:1.5rem 0;border-color:var(--border);">
+            <h3>Evidence</h3>
+            <div style="background:var(--bg);padding:1rem;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <i class="bi {{ $report->isEvidenceImage() ? 'bi-image' : 'bi-file-earmark-text' }} fs-4 text-muted"></i>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:0.9rem;">{{ $report->evidence_name }}</div>
+                        <a href="{{ $report->evidence_url }}" target="_blank" style="font-size:0.8rem;color:var(--primary);text-decoration:none;font-weight:600;">View / Download</a>
+                    </div>
+                </div>
+                @if($report->isEvidenceImage())
+                    <div style="margin-top:1rem;">
+                        <img src="{{ $report->evidence_url }}" alt="Evidence" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid var(--border);">
+                    </div>
+                @endif
+            </div>
+        @endif
+
         @if($report->assignedAdmin)
             <div class="assigned">Assigned admin: {{ $report->assignedAdmin->name }}</div>
         @endif
