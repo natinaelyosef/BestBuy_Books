@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/AdminChatController.php
 
 namespace App\Http\Controllers;
 
@@ -11,8 +12,9 @@ class AdminChatController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        
         $conversations = ChatConversation::query()
-            ->with(['customer', 'latestMessage', 'assignedAdmin'])
+            ->with(['customer', 'latestMessage', 'assignedAdmin']) // Make sure this relationship exists
             ->withCount([
                 'messages as unread_count' => function ($query) use ($user) {
                     $query->whereNull('read_at')
@@ -29,11 +31,13 @@ class AdminChatController extends Controller
     {
         $user = $request->user();
 
+        // Mark messages as read
         $conversation->messages()
             ->whereNull('read_at')
             ->where('sender_id', '!=', $user->id)
             ->update(['read_at' => now()]);
 
+        // Load relationships
         $conversation->load(['customer', 'messages.sender', 'assignedAdmin']);
 
         return view('admin.chats.show', [
@@ -45,6 +49,7 @@ class AdminChatController extends Controller
     public function sendMessage(Request $request, ChatConversation $conversation)
     {
         $user = $request->user();
+
         $data = $request->validate([
             'message' => 'required|string|max:2000',
         ]);
@@ -58,6 +63,8 @@ class AdminChatController extends Controller
 
         $conversation->update([
             'last_message_at' => now(),
+            'last_message' => $data['message'],
+            'last_message_sender_id' => $user->id,
             'assigned_admin_id' => $conversation->assigned_admin_id ?? $user->id,
         ]);
 
@@ -69,6 +76,7 @@ class AdminChatController extends Controller
     public function unreadCount(Request $request)
     {
         $user = $request->user();
+
         $count = ChatMessage::query()
             ->whereNull('read_at')
             ->where('sender_id', '!=', $user->id)

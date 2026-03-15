@@ -96,108 +96,123 @@ class StoreChatController extends Controller
 
     /**
      * Send a new message in a conversation.
-     */
-    public function sendMessage(Request $request, ChatConversation $conversation)
-    {
-        try {
-            // Authorization
-            if ($conversation->store_id !== $request->user()->id) {
-                return response()->json([
-                    'success' => false, 
-                    'error' => 'Unauthorized access to this conversation.'
-                ], 403);
-            }
 
-            // Validate request
-            $request->validate([
-                'message' => 'nullable|string|max:2000',
-                'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt,zip',
-            ]);
+ * Send a message in a conversation.
+ */
 
-            // Check if either message or attachment is provided
-            if (!$request->filled('message') && !$request->hasFile('attachment')) {
-                return response()->json([
-                    'success' => false, 
-                    'error' => 'Please provide a message or attachment.'
-                ], 422);
-            }
 
-            $data = [
-                'conversation_id' => $conversation->id,
-                'sender_id' => $request->user()->id,
-                'sender_role' => 'store_owner',
-                'is_read' => false,
-                'message' => $request->input('message', ''),
-            ];
+public function sendMessage(Request $request, ChatConversation $conversation)
+{
+    // Authorization
+    if ($conversation->store_id !== $request->user()->id) {
+        return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
+    }
 
-            // Handle attachment
-            if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                
-                // Create directory if it doesn't exist
-                $path = 'chat-attachments/' . $conversation->id;
-                
-                // Store file
-                $filePath = $file->store($path, 'public');
-                
-                $data['attachment_path'] = $filePath;
-                $data['attachment_name'] = $file->getClientOriginalName();
-                $data['attachment_size'] = $file->getSize();
-                $data['attachment_type'] = $file->getMimeType();
-                
-                Log::info('File uploaded', [
-                    'path' => $filePath,
-                    'name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize()
-                ]);
-            }
+    try {
+        $data = $request->validate([
+            'message' => 'nullable|string|max:2000',
+            'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt',
+        ]);
 
-            // Create message
-            $message = ChatMessage::create($data);
+        if (empty($data['message']) && !$request->hasFile('attachment')) {
+            return response()->json(['success' => false, 'error' => 'Message or attachment required'], 422);
+        }
 
-            // Update conversation
-            $conversation->update([
-                'last_message_at' => now(),
-                'last_message' => $request->input('message') ?: '[Attachment]',
-                'last_message_sender_id' => $request->user()->id,
-            ]);
+        $messageData = [
+            'conversation_id' => $conversation->id,
+            'sender_id' => $request->user()->id,
+            'sender_role' => 'store_owner',
+            'message' => $data['message'] ?? '',
+        ];
 
-            // Load sender for response
-            $message->load('sender');
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $path = $file->store('chat-attachments', 'public');
+            
+            $messageData['attachment_path'] = $path;
+            $messageData['attachment_name'] = $file->getClientOriginalName();
+            $messageData['attachment_size'] = $file->getSize();
+            $messageData['attachment_type'] = $file->getMimeType();
+        }
 
-            return response()->json([
-                'success' => true,
-                'message' => [
+        $message = ChatMessage::create($messageData);
+
+        $conversation->update([
+            'last_message_at' => now(),
+            'last_message' => $data['message'] ?? '[Attachment]',
+            'last_message_sender_id' => $request->user()->id,
+        ]);
+
+        $message->load('sender');
+
+        return response()->json([
+            'success' => true,
+            'message' => [
+                'id' => $message->id,
+                'content' => $message->message,
+                'created_at' => $message->created_at->format('g:i A'),
+                'is_me' => true,
+                'attachment_url' => $message->attachment_url,
+                'attachment_name' => $message->attachment_name,
+                'is_image' => $message->isImage(),
+            ]
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Validation failed: ' . implode(', ', $e->errors())
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Store send message error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+        return response()->json([
+            'success' => false,
+            'error' => 'Failed to send message: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Poll for new messages.
+ */
+public function pollMessages(Request $request, ChatConversation $conversation)
+{
+    if ($conversation->store_id !== $request->user()->id) {
+        return response()->json(['success' => false], 403);
+    }
+
+    try {
+        $lastId = $request->input('last_id', 0);
+        
+        $messages = $conversation->messages()
+            ->with('sender')
+            ->where('id', '>', $lastId)
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(function ($message) use ($request) {
+                return [
                     'id' => $message->id,
                     'content' => $message->message,
-                    'created_at' => $message->created_at->format('Y-m-d H:i:s'),
+                    'created_at' => $message->created_at->format('g:i A'),
                     'formatted_time' => $message->created_at->format('g:i A'),
-                    'sender_id' => $message->sender_id,
-                    'sender_name' => $message->sender->name,
-                    'is_me' => true,
+                    'is_me' => $message->sender_id === $request->user()->id,
                     'attachment_url' => $message->attachment_url,
                     'attachment_name' => $message->attachment_name,
-                    'attachment_size' => $message->attachment_size,
                     'is_image' => $message->isImage(),
-                ]
-            ]);
+                ];
+            });
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Validation failed: ' . implode(', ', $e->errors())
-            ], 422);
-        } catch (\Exception $e) {
-            Log::error('Store chat message send error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to send message: ' . $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'messages' => $messages
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Store poll messages error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'error' => 'Failed to poll messages'
+        ], 500);
     }
+}
 
     /**
      * Mark messages as read via AJAX.
@@ -224,53 +239,8 @@ class StoreChatController extends Controller
 
     /**
      * Poll for new messages.
-     */
-    public function pollMessages(Request $request, ChatConversation $conversation)
-    {
-        try {
-            if ($conversation->store_id !== $request->user()->id) {
-                return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
-            }
-
-            $lastId = $request->last_id ?? 0;
-
-            $messages = $conversation->messages()
-                ->with('sender')
-                ->where('id', '>', $lastId)
-                ->get()
-                ->map(function ($message) use ($request) {
-                    return [
-                        'id' => $message->id,
-                        'content' => $message->message,
-                        'created_at' => $message->created_at->format('Y-m-d H:i:s'),
-                        'formatted_time' => $message->created_at->format('g:i A'),
-                        'sender_id' => $message->sender_id,
-                        'sender_name' => $message->sender->name,
-                        'is_me' => $message->sender_id === $request->user()->id,
-                        'attachment_url' => $message->attachment_url,
-                        'attachment_name' => $message->attachment_name,
-                        'attachment_size' => $message->attachment_size,
-                        'is_image' => $message->isImage(),
-                    ];
-                });
-
-            return response()->json([
-                'success' => true,
-                'messages' => $messages
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Store poll messages error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to poll messages'
-            ], 500);
-        }
-    }
-
-    /**
-     * Start a new conversation with a customer.
-     */
+ 
+        */
     public function startConversation(Request $request)
     {
         try {

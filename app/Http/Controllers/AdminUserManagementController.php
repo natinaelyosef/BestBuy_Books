@@ -2,124 +2,155 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\IssueReport;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 
 class AdminUserManagementController extends Controller
 {
     /**
-     * List all customers and store owners.
+     * Display a listing of all users (customers and store owners).
      */
     public function index(Request $request)
     {
         $query = User::whereIn('account_type', ['customer', 'store_owner']);
-
+        
+        // Search filter
         if ($request->filled('search')) {
-            $s = $request->search;
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('email', 'like', "%{$s}%");
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
-
+        
+        // Type filter
         if ($request->filled('type')) {
             $query->where('account_type', $request->type);
         }
-
+        
+        // Status filter
         if ($request->filled('status')) {
-            match ($request->status) {
-                'banned'     => $query->where('is_banned', true),
-                'inactive'   => $query->where('is_active', false),
-                'restricted' => $query->where('is_restricted', true),
-                'active'     => $query->where('is_banned', false)->where('is_active', true),
-                default      => null,
-            };
+            switch ($request->status) {
+                case 'active':
+                    $query->where('is_active', true)
+                          ->where('is_banned', false)
+                          ->where(function ($q) {
+                              $q->where('is_restricted', false)
+                                ->orWhereNull('is_restricted');
+                          });
+                    break;
+                case 'banned':
+                    $query->where('is_banned', true);
+                    break;
+                case 'restricted':
+                    $query->where('is_restricted', true)
+                          ->where('restricted_until', '>', now());
+                    break;
+            }
         }
-
-        $users = $query->latest()->paginate(20)->withQueryString();
-
+        
+        $users = $query->orderBy('created_at', 'desc')->paginate(20);
+        
         return view('admin.users.index', compact('users'));
     }
-
+    
     /**
-     * Show a single user's profile and report history.
+     * Display the specified user.
      */
     public function show(User $user)
     {
-        $reports = IssueReport::with(['user'])
-            ->where(function ($q) use ($user) {
-                $q->where('reported_user_id', $user->id)
-                  ->orWhere('user_id', $user->id);
-            })
+        // Only allow viewing customers and store owners
+        if (!in_array($user->account_type, ['customer', 'store_owner'])) {
+            abort(404);
+        }
+        
+        // Get recent reports involving this user
+        $reports = \App\Models\IssueReport::where('user_id', $user->id)
+            ->orWhere('reported_user_id', $user->id)
+            ->with(['user', 'reportedUser'])
             ->latest()
-            ->take(20)
+            ->limit(10)
             ->get();
-
+        
         return view('admin.users.show', compact('user', 'reports'));
     }
-
+    
     /**
      * Ban a user.
      */
     public function banUser(Request $request, User $user)
     {
-        $request->validate(['reason' => 'required|string|max:500']);
-
-        $user->update([
-            'is_banned'  => true,
-            'ban_reason' => $request->reason,
-            'banned_at'  => now(),
+        $request->validate([
+            'reason' => 'required|string|max:500'
         ]);
-
-        return redirect()->back()->with('status', "{$user->name} has been banned.");
+        
+        $user->update([
+            'is_banned' => true,
+            'ban_reason' => $request->reason,
+            'banned_at' => now(),
+            'is_restricted' => false, // Remove restriction if exists
+            'restricted_until' => null,
+        ]);
+        
+        return redirect()->back()->with('status', "{$user->name} has been banned. Reason: {$request->reason}");
     }
-
+    
     /**
      * Unban a user.
      */
     public function unbanUser(User $user)
     {
         $user->update([
-            'is_banned'  => false,
+            'is_banned' => false,
             'ban_reason' => null,
-            'banned_at'  => null,
+            'banned_at' => null,
         ]);
-
+        
         return redirect()->back()->with('status', "{$user->name} has been unbanned.");
     }
-
+    
     /**
      * Issue a warning to a user.
      */
     public function warnUser(User $user)
     {
         $user->increment('warning_count');
-        return redirect()->back()->with('status', "Warning issued to {$user->name}. Total warnings: {$user->warning_count}.");
+        
+        return redirect()->back()->with('status', "Warning issued to {$user->name}. Total warnings: {$user->warning_count}");
     }
-
+    
     /**
-     * Restrict a user for a given number of days.
+     * Restrict a user for a specified number of days.
      */
     public function restrictUser(Request $request, User $user)
     {
-        $request->validate(['days' => 'required|integer|min:1|max:365']);
-
-        $user->update([
-            'is_restricted'   => true,
-            'restricted_until' => now()->addDays($request->days),
+        $request->validate([
+            'days' => 'required|integer|min:1|max:365'
         ]);
-
-        return redirect()->back()->with('status', "{$user->name} has been restricted for {$request->days} day(s).");
+        
+        // Convert to integer explicitly
+        $days = (int) $request->days;
+        
+        $user->update([
+            'is_restricted' => true,
+            'restricted_until' => now()->addDays($days),
+        ]);
+        
+        return redirect()->back()->with('status', "{$user->name} has been restricted for {$days} day(s).");
     }
-
+    
     /**
      * Remove restriction from a user.
      */
     public function unrestrictUser(User $user)
     {
-        $user->update(['is_restricted' => false, 'restricted_until' => null]);
+        $user->update([
+            'is_restricted' => false,
+            'restricted_until' => null
+        ]);
+        
         return redirect()->back()->with('status', "{$user->name}'s restriction has been lifted.");
     }
 }

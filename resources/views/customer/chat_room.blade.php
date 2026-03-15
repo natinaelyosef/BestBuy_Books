@@ -1,7 +1,5 @@
 @extends('customer.base')
-
 @section('title', 'Chat with ' . ($conversation->store->name ?? 'Store'))
-
 @section('content')
 <div class="container-fluid" style="max-width: 1200px;">
     <!-- Back Button -->
@@ -88,48 +86,55 @@
                     </div>
                 </div>
             @empty
-                <div class="text-center py-5">
-                    <i class="bi bi-chat-dots display-1 text-muted"></i>
-                    <p class="text-muted mt-3">No messages yet. Start the conversation!</p>
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-chat-dots display-1"></i>
+                    <p class="mt-3">No messages yet. Start the conversation!</p>
                 </div>
             @endforelse
         </div>
 
         <!-- Message Input -->
         <div class="card-footer bg-white py-3">
-            <form id="message-form" enctype="multipart/form-data">
+            <form id="message-form" enctype="multipart/form-data" class="d-flex gap-2">
                 @csrf
-                <div class="d-flex gap-2">
-                    <div class="flex-grow-1">
-                        <textarea name="message" 
-                                  id="message-input"
-                                  class="form-control" 
-                                  rows="2" 
-                                  placeholder="Type your message..."
-                                  style="resize: none;"></textarea>
-                    </div>
-                    <div class="d-flex flex-column gap-2">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" id="attach-btn">
-                                <i class="bi bi-paperclip"></i>
-                            </button>
-                            <div class="dropdown-menu p-3" style="min-width: 300px;">
-                                <input type="file" 
-                                       id="attachment-input"
-                                       name="attachment" 
-                                       class="form-control"
-                                       accept="image/*,.pdf,.doc,.docx,.txt,.zip">
-                                <div class="form-text mt-2">
-                                    Max size: 10MB
-                                </div>
+                <input type="hidden" name="conversation_id" value="{{ $conversation->id }}">
+                
+                <div class="flex-grow-1">
+                    <textarea 
+                        name="message" 
+                        id="message-input"
+                        class="form-control" 
+                        rows="2" 
+                        placeholder="Type your message..."
+                        style="resize: none;"
+                        required
+                    ></textarea>
+                </div>
+                
+                <div class="d-flex flex-column gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" id="attach-btn">
+                            <i class="bi bi-paperclip"></i>
+                        </button>
+                        <div class="dropdown-menu p-3" style="min-width: 300px;">
+                            <input 
+                                type="file" 
+                                id="attachment-input"
+                                name="attachment" 
+                                class="form-control"
+                                accept="image/*,.pdf,.doc,.docx,.txt">
+                            <div class="form-text mt-2">
+                                Max size: 10MB
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary" id="send-btn">
-                            <i class="bi bi-send-fill"></i>
-                        </button>
                     </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="send-btn">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
                 </div>
             </form>
+            
             <div id="attachment-preview" class="mt-2" style="display: none;">
                 <div class="alert alert-info d-flex align-items-center justify-content-between py-2">
                     <span id="attachment-name"></span>
@@ -151,16 +156,20 @@
     font-weight: 600;
     font-size: 1rem;
 }
+
 .message-bubble {
     word-wrap: break-word;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 .bg-primary .text-white-50 {
     color: rgba(255,255,255,0.7) !important;
 }
+
 .attachment-preview {
     border: 1px solid rgba(0,0,0,0.1);
 }
+
 #messages-container {
     scroll-behavior: smooth;
 }
@@ -180,35 +189,39 @@ document.addEventListener('DOMContentLoaded', function() {
     let lastMessageId = {{ $messages->last()->id ?? 0 }};
     let pollingInterval;
     let isSubmitting = false;
-    
+
     // Scroll to bottom on load
     scrollToBottom();
-    
+
     // Auto-resize textarea
     messageInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
-    
+
     // Handle file selection
     attachmentInput.addEventListener('change', function() {
         if (this.files.length > 0) {
             const file = this.files[0];
-            const fileSize = (file.size / 1024).toFixed(1);
-            attachmentName.textContent = file.name + ' (' + fileSize + ' KB)';
+            attachmentName.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
             attachmentPreview.style.display = 'block';
         } else {
             clearAttachment();
         }
     });
-    
+
+    window.clearAttachment = function() {
+        attachmentInput.value = '';
+        attachmentPreview.style.display = 'none';
+        attachmentName.textContent = '';
+    };
+
     // Handle form submission
     messageForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         if (isSubmitting) return;
         
-        const formData = new FormData();
         const message = messageInput.value.trim();
         const attachment = attachmentInput.files[0];
         
@@ -216,33 +229,31 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please enter a message or select a file to attach.');
             return;
         }
-        
+
+        const formData = new FormData();
         if (message) {
             formData.append('message', message);
         }
-        
         if (attachment) {
             formData.append('attachment', attachment);
         }
-        
+
         // Disable form
         isSubmitting = true;
         setFormDisabled(true);
-        
+
         try {
-            console.log('Sending message to:', `/chat/${conversationId}/send`);
-            
-            const response = await fetch(`/chat/${conversationId}/send`, {
+            const response = await fetch(`/customer/chat/${conversationId}/send`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 },
                 body: formData
             });
-            
+
             const data = await response.json();
-            console.log('Response:', data);
             
             if (data.success) {
                 // Clear form
@@ -269,21 +280,32 @@ document.addEventListener('DOMContentLoaded', function() {
             setFormDisabled(false);
         }
     });
-    
+
     // Poll for new messages
     function startPolling() {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+        }
         pollingInterval = setInterval(pollMessages, 3000);
     }
-    
+
     async function pollMessages() {
         try {
-            const response = await fetch(`/chat/${conversationId}/poll?last_id=${lastMessageId}`);
+            const response = await fetch(`/customer/chat/${conversationId}/poll?last_id=${lastMessageId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            
             const data = await response.json();
             
             if (data.success && data.messages && data.messages.length > 0) {
                 data.messages.forEach(msg => {
                     appendMessage(msg);
-                    lastMessageId = Math.max(lastMessageId, msg.id);
+                    if (msg.id > lastMessageId) {
+                        lastMessageId = msg.id;
+                    }
                 });
                 scrollToBottom();
             }
@@ -291,23 +313,23 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Polling error:', error);
         }
     }
-    
+
     function appendMessage(message) {
         // Check if message already exists
         if (document.querySelector(`[data-message-id="${message.id}"]`)) {
             return;
         }
-        
+
         const messageDiv = document.createElement('div');
         messageDiv.className = `message-item mb-3 ${message.is_me ? 'text-end' : ''}`;
         messageDiv.setAttribute('data-message-id', message.id);
-        
+
         let attachmentHtml = '';
         if (message.attachment_url) {
             attachmentHtml = `
                 <div class="attachment-preview mt-2 p-2 ${message.is_me ? 'bg-primary bg-opacity-25' : 'bg-light'} rounded-2">
                     ${message.is_image ? 
-                        `<img src="${message.attachment_url}" alt="Attachment" class="img-fluid rounded-2 mb-2" style="max-height: 150px; cursor: pointer;" onclick="window.open('${message.attachment_url}', '_blank')">` 
+                        `<img src="${message.attachment_url}" alt="Attachment" class="img-fluid rounded-2 mb-2" style="max-height: 150px; cursor: pointer;" onclick="window.open('${message.attachment_url}', '_blank')">`
                         : ''
                     }
                     <div class="d-flex align-items-center gap-2">
@@ -320,23 +342,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         }
-        
+
         messageDiv.innerHTML = `
             <div class="d-inline-block" style="max-width: 70%;">
                 <div class="message-bubble p-3 rounded-3 ${message.is_me ? 'bg-primary text-white' : 'bg-white'}">
                     ${message.content ? `<p class="mb-1">${escapeHtml(message.content)}</p>` : ''}
                     ${attachmentHtml}
                     <small class="d-block mt-2 ${message.is_me ? 'text-white-50' : 'text-muted'}">
-                        ${message.formatted_time || message.created_at}
+                        ${message.created_at || message.formatted_time}
                         ${message.is_me ? '<i class="bi bi-check2 ms-1" title="Sent"></i>' : ''}
                     </small>
                 </div>
             </div>
         `;
-        
+
         messagesContainer.appendChild(messageDiv);
     }
-    
+
     function setFormDisabled(disabled) {
         messageInput.disabled = disabled;
         attachmentInput.disabled = disabled;
@@ -347,31 +369,22 @@ document.addEventListener('DOMContentLoaded', function() {
             sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
         }
     }
-    
-    window.clearAttachment = function() {
-        attachmentInput.value = '';
-        attachmentPreview.style.display = 'none';
-        attachmentName.textContent = '';
-    };
-    
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function scrollToBottom() {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-    
-    function escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-    
+
     // Start polling
     startPolling();
-    
-    // Cleanup on page unload
+
+    // Clean up interval on page unload
     window.addEventListener('beforeunload', function() {
         if (pollingInterval) {
             clearInterval(pollingInterval);

@@ -1,4 +1,5 @@
 <?php
+// app/Models/ChatConversation.php
 
 namespace App\Models;
 
@@ -18,6 +19,7 @@ class ChatConversation extends Model
         'last_message_at',
         'last_message',
         'last_message_sender_id',
+        'assigned_admin_id', // Add this if it exists in your table
     ];
 
     protected $casts = [
@@ -53,6 +55,14 @@ class ChatConversation extends Model
     public function lastMessageSender()
     {
         return $this->belongsTo(User::class, 'last_message_sender_id');
+    }
+
+    /**
+     * Get the admin assigned to this conversation.
+     */
+    public function assignedAdmin()
+    {
+        return $this->belongsTo(User::class, 'assigned_admin_id');
     }
 
     // Scopes

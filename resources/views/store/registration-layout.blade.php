@@ -365,7 +365,7 @@
         </a>
         <a class="sidebar-item @if(request()->routeIs('store.issue-reports.*')) active @endif" href="{{ route('store.issue-reports.index') }}">
             <i class="bi bi-headset me-2"></i>
-            Support Chats
+           My Reports
         </a>
        <a class="sidebar-item @if(request()->routeIs('store.issue-reports.create')) active @endif" href="{{ route('store.issue-reports.create') }}">
             <i class="bi bi-flag me-2"></i>

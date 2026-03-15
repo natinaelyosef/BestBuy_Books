@@ -89,19 +89,22 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Customer Chat Routes (FIXED)
+    | Customer Chat Routes
     |--------------------------------------------------------------------------
     */
     // Main chat listing
     Route::get('/customer/chat', [CustomerChatController::class, 'index'])->name('chat.index');
     
-    // Start new conversation
+    // Start new conversation (POST form)
     Route::post('/customer/chat', [CustomerChatController::class, 'startConversation'])->name('chat.start');
     
-    // View conversation
+    // Start conversation with specific store owner (GET from book page)
+    Route::get('/customer/chat/with-store/{storeId}', [CustomerChatController::class, 'startWithStore'])->name('chat.with.store');
+    
+    // View specific conversation - THIS MUST COME AFTER specific routes
     Route::get('/customer/chat/{conversation}', [CustomerChatController::class, 'show'])->name('chat.show');
     
-    // Send message (with attachment support)
+    // Send message (AJAX with attachment support)
     Route::post('/customer/chat/{conversation}/send', [CustomerChatController::class, 'sendMessage'])->name('chat.send');
     
     // Mark messages as read
@@ -110,15 +113,76 @@ Route::middleware('auth')->group(function () {
     // Poll for new messages
     Route::get('/customer/chat/{conversation}/poll', [CustomerChatController::class, 'pollMessages'])->name('chat.poll');
     
-    // Get stores list for new chat
+    // Get stores list for new chat (AJAX)
     Route::get('/customer/chat/stores/list', [CustomerChatController::class, 'getStores'])->name('chat.stores');
     
-    // Get unread count
-    Route::get('/chat/unread-count', [CustomerChatController::class, 'getUnreadCount'])->name('chat.unread');
+    // Get unread count (AJAX)
+    Route::get('/customer/chat/unread-count', [CustomerChatController::class, 'getUnreadCount'])->name('chat.unread');
 });
 
 // Include Auth Routes
 require __DIR__ . '/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Customer Routes (Cart, Wishlist, Orders)
+|--------------------------------------------------------------------------
+*/
+
+// Wishlist Routes - Support both GET and POST for form submissions
+Route::match(['get', 'post'], '/customer/wishlist', [CustomerWishlistController::class, 'index'])
+    ->middleware('auth')
+    ->name('wishlist.index');
+    
+Route::match(['get', 'post'], '/customer/wishlist/add/{book}', [CustomerWishlistController::class, 'add'])
+    ->middleware('auth')
+    ->name('wishlist.add');
+    
+Route::match(['get', 'post'], '/customer/wishlist/remove/{book}', [CustomerWishlistController::class, 'remove'])
+    ->middleware('auth')
+    ->name('wishlist.remove');
+    
+Route::match(['get', 'post'], '/customer/wishlist/clear', [CustomerWishlistController::class, 'clear'])
+    ->middleware('auth')
+    ->name('wishlist.clear');
+
+// Cart Routes
+Route::get('/customer/cart', [CustomerCartController::class, 'index'])
+    ->middleware('auth')
+    ->name('cart.index');
+    
+Route::get('/customer/cart/add/rent/{book}', [CustomerCartController::class, 'addRent'])
+    ->middleware('auth')
+    ->name('cart.add.rent');
+    
+Route::get('/customer/cart/add/buy/{book}', [CustomerCartController::class, 'addBuy'])
+    ->middleware('auth')
+    ->name('cart.add.buy');
+    
+Route::get('/customer/cart/remove/{book}/{type}', [CustomerCartController::class, 'remove'])
+    ->middleware('auth')
+    ->name('cart.remove');
+    
+Route::get('/get-cart-count', [CustomerCartController::class, 'count'])
+    ->middleware('auth')
+    ->name('cart.count');
+
+// Checkout & Orders
+Route::get('/customer/checkout', [CustomerCartController::class, 'checkout'])
+    ->middleware('auth')
+    ->name('orders.checkout');
+    
+Route::get('/customer/orders', [CustomerOrderController::class, 'index'])
+    ->middleware('auth')
+    ->name('orders.index');
+    
+Route::get('/customer/orders/{order}', [CustomerOrderController::class, 'show'])
+    ->middleware('auth')
+    ->name('orders.show');
+    
+Route::post('/customer/orders/{order}/finish', [CustomerOrderController::class, 'markFinished'])
+    ->middleware('auth')
+    ->name('orders.finish');
 
 /*
 |--------------------------------------------------------------------------
@@ -172,7 +236,7 @@ Route::middleware(['auth'])->group(function () {
     // View conversation
     Route::get('/store/chat/{conversation}', [StoreChatController::class, 'show'])->name('store.chat.show');
     
-    // Send message (with attachment support)
+    // Send message (AJAX with attachment support)
     Route::post('/store/chat/{conversation}/send', [StoreChatController::class, 'sendMessage'])->name('store.chat.send');
     
     // Mark messages as read
@@ -254,54 +318,3 @@ Route::middleware(['auth', 'account_type:sub_admin,super_admin'])
             ->middleware('account_type:super_admin')
             ->name('admins.toggle-active');
     });
-
-/*
-|--------------------------------------------------------------------------
-| Customer Routes (Cart, Wishlist, Orders)
-|--------------------------------------------------------------------------
-*/
-
-// Wishlist Routes
-Route::get('/customer/wishlist', [CustomerWishlistController::class, 'index'])
-    ->middleware('auth')
-    ->name('wishlist.index');
-Route::get('/customer/wishlist/add/{book}', [CustomerWishlistController::class, 'add'])
-    ->middleware('auth')
-    ->name('wishlist.add');
-Route::get('/customer/wishlist/remove/{book}', [CustomerWishlistController::class, 'remove'])
-    ->middleware('auth')
-    ->name('wishlist.remove');
-Route::get('/customer/wishlist/clear', [CustomerWishlistController::class, 'clear'])
-    ->middleware('auth')
-    ->name('wishlist.clear');
-
-// Cart Routes
-Route::get('/customer/cart', [CustomerCartController::class, 'index'])
-    ->middleware('auth')
-    ->name('cart.index');
-Route::get('/customer/cart/add/rent/{book}', [CustomerCartController::class, 'addRent'])
-    ->middleware('auth')
-    ->name('cart.add.rent');
-Route::get('/customer/cart/add/buy/{book}', [CustomerCartController::class, 'addBuy'])
-    ->middleware('auth')
-    ->name('cart.add.buy');
-Route::get('/customer/cart/remove/{book}/{type}', [CustomerCartController::class, 'remove'])
-    ->middleware('auth')
-    ->name('cart.remove');
-Route::get('/get-cart-count', [CustomerCartController::class, 'count'])
-    ->middleware('auth')
-    ->name('cart.count');
-
-// Checkout & Orders
-Route::get('/customer/checkout', [CustomerCartController::class, 'checkout'])
-    ->middleware('auth')
-    ->name('orders.checkout');
-Route::get('/customer/orders', [CustomerOrderController::class, 'index'])
-    ->middleware('auth')
-    ->name('orders.index');
-Route::get('/customer/orders/{order}', [CustomerOrderController::class, 'show'])
-    ->middleware('auth')
-    ->name('orders.show');
-Route::post('/customer/orders/{order}/finish', [CustomerOrderController::class, 'markFinished'])
-    ->middleware('auth')
-    ->name('orders.finish');

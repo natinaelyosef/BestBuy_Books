@@ -32,19 +32,10 @@
             
             <!-- Quick Actions -->
             <div class="book-actions-vertical">
-                @php
-                    $wishlistIds = session('wishlist', []);
-                    $isInWishlist = in_array($book->id, $wishlistIds);
-                @endphp
-                
-                <form id="wishlist-form-{{ $book->id }}" method="POST" action="{{ $isInWishlist ? route('wishlist.remove', $book->id) : route('wishlist.add', $book->id) }}" style="display: none;">
-                    @csrf
-                </form>
-                
-                <button class="action-btn wishlist-btn {{ $isInWishlist ? 'active' : '' }}" 
-                        onclick="document.getElementById('wishlist-form-{{ $book->id }}').submit();">
-                    <i class="bi {{ $isInWishlist ? 'bi-heart-fill' : 'bi-heart' }}"></i>
-                    <span>{{ $isInWishlist ? 'In Wishlist' : 'Add to Wishlist' }}</span>
+                <button class="action-btn wishlist-btn {{ in_array($book->id, session('wishlist', [])) ? 'active' : '' }}" 
+                        onclick="toggleWishlist({{ $book->id }})">
+                    <i class="bi {{ in_array($book->id, session('wishlist', [])) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+                    <span>{{ in_array($book->id, session('wishlist', [])) ? 'In Wishlist' : 'Add to Wishlist' }}</span>
                 </button>
                 
                 <button class="action-btn share-btn" onclick="shareBook()">
@@ -228,6 +219,11 @@
     {{ session('error') }}
 </div>
 @endif
+
+<!-- Hidden Form for Wishlist Toggle -->
+<form id="wishlist-form" method="POST" style="display: none;">
+    @csrf
+</form>
 @endsection
 
 @section('extra_css')
@@ -954,6 +950,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 });
+
+// Wishlist toggle functionality
+function toggleWishlist(bookId) {
+    const form = document.getElementById('wishlist-form');
+    const isInWishlist = document.querySelector('.wishlist-btn').classList.contains('active');
+    
+    form.action = isInWishlist 
+        ? `{{ route('wishlist.remove', '') }}/${bookId}`
+        : `{{ route('wishlist.add', '') }}/${bookId}`;
+    
+    form.method = 'POST';
+    form.submit();
+}
 
 // Share functionality
 function shareBook() {
