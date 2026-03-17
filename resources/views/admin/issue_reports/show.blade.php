@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="card" style="max-width:900px;">
-    <a href="{{ route('admin.issue-reports.index') }}" style="text-decoration:none;color:#5b4cff;font-weight:700;">
+    <a href="{{ route('admin.issue-reports.index') }}" style="text-decoration:none;color:var(--shell-brand);font-weight:700;">
         <i class="bi bi-arrow-left"></i> Back to reports
     </a>
 
@@ -49,7 +49,7 @@
                 <textarea name="admin_notes" rows="3" style="padding:0.6rem;border-radius:8px;border:1px solid #d0d5dd;">{{ $report->admin_notes }}</textarea>
             </label>
 
-            <button type="submit" style="padding:0.7rem 1.2rem;border:none;border-radius:8px;background:#5b4cff;color:#fff;font-weight:700;cursor:pointer;">
+            <button type="submit" style="padding:0.7rem 1.2rem;border:none;border-radius:8px;background:var(--shell-brand);color:#fff;font-weight:700;cursor:pointer;">
                 Update Status
             </button>
         </form>
@@ -98,7 +98,7 @@
                     </form>
                     @endif
                     
-                    <a href="{{ route('admin.users.show', $target) }}" style="display:inline-block;margin-top:0.5rem;text-align:center;color:#5b4cff;font-weight:600;text-decoration:none;">
+                    <a href="{{ route('admin.users.show', $target) }}" style="display:inline-block;margin-top:0.5rem;text-align:center;color:var(--shell-brand);font-weight:600;text-decoration:none;">
                         View Full User Profile <i class="bi bi-box-arrow-up-right"></i>
                     </a>
                 </div>

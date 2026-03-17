@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class BookController extends Controller
@@ -37,6 +39,16 @@ class BookController extends Controller
         return view('store.books.inventory', compact('books', 'storeMetrics'));
     }
 
+    public function manage(Request $request)
+    {
+        $books = Book::query()
+            ->where('user_id', $request->user()->id)
+            ->latest('id')
+            ->get();
+
+        return view('store.books.manage', compact('books'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -50,7 +62,10 @@ class BookController extends Controller
             'rental_price' => 'required|numeric|min:0',
             'sale_price' => 'required|numeric|min:0',
             'cover_image' => 'nullable|image|max:5120',
+            'pdf_file' => 'nullable|file|mimes:pdf|max:20480',
         ]);
+
+        $pdfColumnsAvailable = $this->pdfColumnsAvailable();
 
         if (($validated['available_rent'] + $validated['available_sale']) > $validated['total_copies']) {
             return back()
@@ -71,10 +86,26 @@ class BookController extends Controller
             $coverImagePath = 'uploads/books/' . $filename;
         }
 
+        $pdfPath = null;
+        $pdfName = null;
+        $pdfSize = null;
+        if ($pdfColumnsAvailable && $request->hasFile('pdf_file')) {
+            $pdf = $request->file('pdf_file');
+            $pdfPath = $pdf->store('book-pdfs', 'local');
+            $pdfName = $pdf->getClientOriginalName();
+            $pdfSize = $pdf->getSize();
+        }
+
         $payload = $validated;
         unset($payload['cover_image']);
+        unset($payload['pdf_file']);
         $payload['user_id'] = $request->user()->id;
         $payload['cover_image_path'] = $coverImagePath;
+        if ($pdfColumnsAvailable) {
+            $payload['pdf_path'] = $pdfPath;
+            $payload['pdf_name'] = $pdfName;
+            $payload['pdf_size'] = $pdfSize;
+        }
 
         Book::create($payload);
 
@@ -102,7 +133,11 @@ class BookController extends Controller
             'rental_price' => 'required|numeric|min:0',
             'sale_price' => 'required|numeric|min:0',
             'cover_image' => 'nullable|image|max:5120',
+            'pdf_file' => 'nullable|file|mimes:pdf|max:20480',
+            'remove_pdf' => 'nullable|boolean',
         ]);
+
+        $pdfColumnsAvailable = $this->pdfColumnsAvailable();
 
         if (($validated['available_rent'] + $validated['available_sale']) > $validated['total_copies']) {
             return back()
@@ -130,9 +165,40 @@ class BookController extends Controller
             $coverImagePath = 'uploads/books/' . $filename;
         }
 
+        $pdfPath = $book->pdf_path;
+        $pdfName = $book->pdf_name;
+        $pdfSize = $book->pdf_size;
+
+        if ($pdfColumnsAvailable) {
+            if ($request->boolean('remove_pdf') && $pdfPath) {
+                if (Storage::disk('local')->exists($pdfPath)) {
+                    Storage::disk('local')->delete($pdfPath);
+                }
+                $pdfPath = null;
+                $pdfName = null;
+                $pdfSize = null;
+            }
+
+            if ($request->hasFile('pdf_file')) {
+                if ($pdfPath && Storage::disk('local')->exists($pdfPath)) {
+                    Storage::disk('local')->delete($pdfPath);
+                }
+                $pdf = $request->file('pdf_file');
+                $pdfPath = $pdf->store('book-pdfs', 'local');
+                $pdfName = $pdf->getClientOriginalName();
+                $pdfSize = $pdf->getSize();
+            }
+        }
+
         $payload = $validated;
         unset($payload['cover_image']);
+        unset($payload['pdf_file'], $payload['remove_pdf']);
         $payload['cover_image_path'] = $coverImagePath;
+        if ($pdfColumnsAvailable) {
+            $payload['pdf_path'] = $pdfPath;
+            $payload['pdf_name'] = $pdfName;
+            $payload['pdf_size'] = $pdfSize;
+        }
 
         $book->update($payload);
 
@@ -154,10 +220,44 @@ class BookController extends Controller
             }
         }
 
+        if ($this->pdfColumnsAvailable() && $book->pdf_path && Storage::disk('local')->exists($book->pdf_path)) {
+            Storage::disk('local')->delete($book->pdf_path);
+        }
+
         $book->delete();
 
         return redirect()
             ->route('view.inventory')
             ->with('messages', ['Book deleted successfully.']);
+    }
+
+    public function downloadPdf(Request $request, Book $book)
+    {
+        if ($book->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!$this->pdfColumnsAvailable()) {
+            return redirect()
+                ->back()
+                ->with('messages', ['PDF downloads are not available yet. Please run migrations.']);
+        }
+
+        if (!$book->pdf_path || !Storage::disk('local')->exists($book->pdf_path)) {
+            return redirect()
+                ->back()
+                ->with('messages', ['PDF file not found for this book.']);
+        }
+
+        $filename = $book->pdf_name ?: (Str::slug($book->title) . '.pdf');
+
+        return Storage::disk('local')->download($book->pdf_path, $filename);
+    }
+
+    private function pdfColumnsAvailable(): bool
+    {
+        return Schema::hasColumn('books', 'pdf_path')
+            && Schema::hasColumn('books', 'pdf_name')
+            && Schema::hasColumn('books', 'pdf_size');
     }
 }

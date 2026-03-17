@@ -21,6 +21,9 @@ class Book extends Model
         'rental_price',
         'sale_price',
         'cover_image_path',
+        'pdf_path',
+        'pdf_name',
+        'pdf_size',
     ];
 
     protected $casts = [
@@ -35,5 +38,10 @@ class Book extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function pdfRequests()
+    {
+        return $this->hasMany(BookPdfRequest::class);
     }
 }

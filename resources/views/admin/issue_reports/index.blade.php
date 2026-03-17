@@ -34,7 +34,7 @@
                     <td style="padding:0.7rem 0.4rem;">{{ ucfirst(str_replace('_', ' ', $report->status)) }}</td>
                     <td style="padding:0.7rem 0.4rem;">{{ $report->created_at->format('M d, Y') }}</td>
                     <td style="padding:0.7rem 0.4rem;text-align:right;">
-                        <a href="{{ route('admin.issue-reports.show', $report) }}" style="text-decoration:none;color:#5b4cff;font-weight:700;">View</a>
+                        <a href="{{ route('admin.issue-reports.show', $report) }}" style="text-decoration:none;color:var(--shell-brand);font-weight:700;">View</a>
                     </td>
                 </tr>
                 @empty

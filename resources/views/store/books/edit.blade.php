@@ -160,6 +160,31 @@
                                 </div>
                             </div>
 
+                            <!-- PDF UPLOAD SECTION -->
+                            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-8 space-y-4">
+                                <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                                    Book PDF
+                                </h2>
+                                @if($book->pdf_path)
+                                    <div class="text-sm text-gray-600">
+                                        Current PDF: {{ $book->pdf_name ?? 'PDF file' }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <label class="text-sm font-medium text-gray-600">Upload new PDF (optional)</label>
+                                    <input type="file" name="pdf_file" accept="application/pdf" class="form-control mt-2">
+                                    <p class="text-xs text-gray-500 mt-2">Uploading a new file replaces the existing PDF.</p>
+                                </div>
+                                @if($book->pdf_path)
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="remove_pdf" value="1" id="remove_pdf">
+                                        <label class="form-check-label text-sm text-gray-600" for="remove_pdf">
+                                            Remove current PDF
+                                        </label>
+                                    </div>
+                                @endif
+                            </div>
+
                             <!-- STICKY ACTION BAR -->
                             <div class="sticky bottom-0 border-t border-gray-200 p-6 flex justify-end gap-4 rounded-b-2xl shadow-lg bg-white">
                                 <button type="button"

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
+use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class CustomerOrderController extends Controller
 {
@@ -13,33 +14,50 @@ class CustomerOrderController extends Controller
         $statusFilter = $request->query('status', 'all');
         $timeFilter = $request->query('time', 'all');
 
-        $orders = collect($request->session()->get('orders', []));
+        if (!$this->ordersAvailable()) {
+            return view('customer.order_history', [
+                'orders' => collect(),
+                'activeRentals' => collect(),
+                'statusFilter' => $statusFilter,
+                'timeFilter' => $timeFilter,
+            ])->with('error', 'Orders are not available yet. Please run migrations.');
+        }
+
+        $query = Order::query()
+            ->with(['items.book', 'store'])
+            ->where('customer_id', $request->user()->id);
 
         if ($statusFilter !== 'all') {
-            $orders = $orders->where('status', $statusFilter);
+            $query->where('status', $statusFilter);
         }
 
         if ($timeFilter !== 'all') {
             $cutoff = $timeFilter === '7days' ? now()->subDays(7) : now()->subDays(30);
-            $orders = $orders->filter(function ($order) use ($cutoff) {
-                return Carbon::parse($order['created_at'])->greaterThanOrEqualTo($cutoff);
-            });
+            $query->where('created_at', '>=', $cutoff);
         }
 
-        $orders = $orders->map(function ($order) {
-            $order['created_at'] = Carbon::parse($order['created_at']);
-            $order['status_label'] = $this->statusLabel($order['status']);
-            $order['items_count'] = count($order['items'] ?? []);
-            $order['items_preview'] = collect($order['items'] ?? [])
+        $orders = $query->latest('id')->get()->map(function (Order $order) {
+            $itemsCount = $order->items->sum('quantity');
+            $itemsPreview = $order->items
                 ->take(2)
                 ->map(function ($item) {
-                    $book = Book::find($item['book_id']);
-                    return $book?->title ?? 'Unknown';
+                    return $item->book?->title ?? 'Unknown';
                 })
                 ->implode(', ');
-            $order['store_name'] = $order['store']['store_name'] ?? 'BookHub';
-            return $order;
-        })->values();
+
+            return [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'created_at' => Carbon::parse($order->created_at),
+                'order_type' => $order->order_type,
+                'status' => $order->status,
+                'status_label' => $this->statusLabel($order->status),
+                'items_count' => $itemsCount,
+                'items_preview' => $itemsPreview,
+                'store_name' => $order->store?->name ?? 'BookHub',
+                'total_amount' => $order->total_amount,
+            ];
+        });
 
         $activeRentals = $orders->filter(function ($order) {
             return $order['order_type'] === 'rent' && !in_array($order['status'], ['completed', 'cancelled'], true);
@@ -55,8 +73,16 @@ class CustomerOrderController extends Controller
 
     public function show(Request $request, $orderId)
     {
-        $orders = collect($request->session()->get('orders', []));
-        $order = $orders->firstWhere('id', (int) $orderId);
+        if (!$this->ordersAvailable()) {
+            return redirect()
+                ->route('orders.index')
+                ->with('error', 'Orders are not available yet. Please run migrations.');
+        }
+
+        $order = Order::query()
+            ->with(['items.book', 'store'])
+            ->where('customer_id', $request->user()->id)
+            ->find($orderId);
 
         if (!$order) {
             return redirect()
@@ -64,24 +90,41 @@ class CustomerOrderController extends Controller
                 ->with('error', 'Order not found.');
         }
 
-        $order['created_at'] = Carbon::parse($order['created_at']);
-        $order['status_label'] = $this->statusLabel($order['status']);
+        $orderData = [
+            'id' => $order->id,
+            'order_number' => $order->order_number,
+            'created_at' => Carbon::parse($order->created_at),
+            'order_type' => $order->order_type,
+            'status' => $order->status,
+            'status_label' => $this->statusLabel($order->status),
+            'total_amount' => $order->total_amount,
+            'delivery_option' => $order->delivery_option,
+            'delivery_fee' => $order->delivery_fee,
+            'notes' => $order->notes,
+            'store_notes' => $order->store_notes,
+            'store' => [
+                'store_name' => $order->store?->name ?? 'BookHub',
+                'address' => null,
+                'city' => null,
+                'phone' => $order->store?->phone,
+                'email' => $order->store?->email,
+            ],
+        ];
 
-        $items = collect($order['items'] ?? [])->map(function ($item) {
-            $book = Book::find($item['book_id']);
+        $items = $order->items->map(function ($item) {
             return [
-                'book' => $book,
-                'item_type' => $item['type'],
-                'quantity' => $item['quantity'] ?? 1,
-                'rental_days' => $item['rental_days'] ?? null,
-                'price' => $item['price'] ?? 0,
+                'book' => $item->book,
+                'item_type' => $item->item_type,
+                'quantity' => $item->quantity,
+                'rental_days' => $item->rental_days,
+                'price' => $item->price,
             ];
         })->filter(fn ($item) => $item['book'])->values();
 
         $subtotal = $items->sum('price');
 
         return view('customer.order_detail', [
-            'order' => $order,
+            'order' => $orderData,
             'items' => $items,
             'subtotal' => $subtotal,
             'delivery' => null,
@@ -90,15 +133,23 @@ class CustomerOrderController extends Controller
 
     public function markFinished(Request $request, $orderId)
     {
-        $orders = $request->session()->get('orders', []);
-        foreach ($orders as &$order) {
-            if ((int) $order['id'] === (int) $orderId) {
-                $order['status'] = 'completed';
-            }
+        if (!$this->ordersAvailable()) {
+            return redirect()
+                ->route('orders.index')
+                ->with('error', 'Orders are not available yet. Please run migrations.');
         }
-        unset($order);
 
-        $request->session()->put('orders', $orders);
+        $order = Order::query()
+            ->where('customer_id', $request->user()->id)
+            ->find($orderId);
+
+        if (!$order) {
+            return redirect()
+                ->route('orders.index')
+                ->with('error', 'Order not found.');
+        }
+
+        $order->update(['status' => 'completed']);
 
         return redirect()
             ->back()
@@ -118,5 +169,10 @@ class CustomerOrderController extends Controller
             'cancelled' => 'Declined',
             default => ucfirst(str_replace('_', ' ', $status)),
         };
+    }
+
+    private function ordersAvailable(): bool
+    {
+        return Schema::hasTable('orders') && Schema::hasTable('order_items');
     }
 }

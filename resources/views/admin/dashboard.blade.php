@@ -134,6 +134,6 @@
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
 }
 .bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1f7a8c 0%, #2f9ca8 55%, #f2a65a 120%);
 }
 </style>

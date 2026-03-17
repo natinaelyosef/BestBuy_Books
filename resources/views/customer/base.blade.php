@@ -790,6 +790,9 @@
         <a href="{{ route('orders.index') }}" class="nav-btn">
           <i class="bi bi-receipt"></i> Orders
         </a>
+        <a href="{{ route('customer.pdfs.index') }}" class="nav-btn">
+          <i class="bi bi-file-earmark-pdf"></i> My PDFs
+        </a>
         <a href="{{ route('chat.index') }}" class="nav-btn cart-btn">
           <i class="bi bi-chat-dots-fill"></i> Chat
           <span class="cart-badge" id="chat-unread-badge" style="display:none;">0</span>
@@ -853,6 +856,7 @@
   @else
     <a href="{{ route('wishlist.index') }}" class="nav-btn"><i class="bi bi-heart-fill"></i> Wishlist</a>
     <a href="{{ route('orders.index') }}" class="nav-btn"><i class="bi bi-receipt"></i> Orders</a>
+    <a href="{{ route('customer.pdfs.index') }}" class="nav-btn"><i class="bi bi-file-earmark-pdf"></i> My PDFs</a>
     <a href="{{ route('chat.index') }}" class="nav-btn"><i class="bi bi-chat-dots-fill"></i> Chat</a>
     <a href="{{ route('issue-reports.index') }}" class="nav-btn"><i class="bi bi-flag-fill"></i> Issues</a>
     <a href="{{ route('cart.index') }}" class="nav-btn"><i class="bi bi-bag-fill"></i> Cart</a>

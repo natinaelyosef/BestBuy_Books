@@ -13,10 +13,14 @@ use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\CustomerIssueReportController;
 use App\Http\Controllers\CustomerWishlistController;
 use App\Http\Controllers\CustomerDashboardController;
+use App\Http\Controllers\CustomerPdfController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreRegistrationController;
 use App\Http\Controllers\StoreIssueReportController;
 use App\Http\Controllers\StoreChatController;
+use App\Http\Controllers\StoreOrderController;
+use App\Http\Controllers\StoreWishlistController;
+use App\Http\Controllers\StorePdfRequestController;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -118,6 +122,11 @@ Route::middleware('auth')->group(function () {
     
     // Get unread count (AJAX)
     Route::get('/customer/chat/unread-count', [CustomerChatController::class, 'getUnreadCount'])->name('chat.unread');
+
+    // Customer PDF Requests
+    Route::get('/customer/pdfs', [CustomerPdfController::class, 'index'])->name('customer.pdfs.index');
+    Route::post('/customer/books/{book}/pdf-request', [CustomerPdfController::class, 'storeRequest'])->name('customer.pdf.request');
+    Route::get('/customer/pdfs/{pdfRequest}/download', [CustomerPdfController::class, 'download'])->name('customer.pdfs.download');
 });
 
 // Include Auth Routes
@@ -199,8 +208,14 @@ Route::middleware(['auth'])->group(function () {
     })->name('store.dashboard');
 
     // Store Views
-    Route::view('/store/orders', 'store.orders')->name('store.orders');
-    Route::view('/store/wishlist', 'store.wishlist')->name('store.wishlist');
+    Route::get('/store/orders', [StoreOrderController::class, 'index'])->name('store.orders');
+    Route::put('/store/orders/{order}/status', [StoreOrderController::class, 'updateStatus'])->name('store.orders.update');
+    Route::get('/store/wishlist', [StoreWishlistController::class, 'index'])->name('store.wishlist');
+
+    // Store PDF Requests
+    Route::get('/store/pdf-requests', [StorePdfRequestController::class, 'index'])->name('store.pdf-requests.index');
+    Route::put('/store/pdf-requests/{pdfRequest}/approve', [StorePdfRequestController::class, 'approve'])->name('store.pdf-requests.approve');
+    Route::put('/store/pdf-requests/{pdfRequest}/reject', [StorePdfRequestController::class, 'reject'])->name('store.pdf-requests.reject');
 
     // Book Management
     Route::get('/store/books/add', [BookController::class, 'create'])->name('add.book.registration');
@@ -209,7 +224,8 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/store/books/{book}', [BookController::class, 'update'])->name('books.update');
     Route::delete('/store/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
     Route::get('/store/inventory', [BookController::class, 'index'])->name('view.inventory');
-    Route::view('/store/books/manage', 'store.books.manage')->name('manage.books');
+    Route::get('/store/books/manage', [BookController::class, 'manage'])->name('manage.books');
+    Route::get('/store/books/{book}/pdf', [BookController::class, 'downloadPdf'])->name('store.books.pdf');
 
     // Store Registration
     Route::get('/store/registration', [StoreRegistrationController::class, 'create'])

@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="card" style="max-width:900px;">
-    <a href="{{ route('admin.chats.index') }}" style="text-decoration:none;color:#5b4cff;font-weight:700;">
+    <a href="{{ route('admin.chats.index') }}" style="text-decoration:none;color:var(--shell-brand);font-weight:700;">
         <i class="bi bi-arrow-left"></i> Back to chats
     </a>
 
@@ -15,7 +15,7 @@
         @forelse($messages as $message)
             @php $mine = (int) $message->sender_id === (int) auth()->id(); @endphp
             <div style="display:flex;justify-content:{{ $mine ? 'flex-end' : 'flex-start' }};">
-                <div style="max-width:70%;background:{{ $mine ? '#5b4cff' : '#f1f3f9' }};color:{{ $mine ? '#fff' : '#1f2433' }};padding:0.7rem 0.9rem;border-radius:12px;">
+                <div style="max-width:70%;background:{{ $mine ? 'var(--shell-brand)' : '#f1f3f9' }};color:{{ $mine ? '#fff' : '#1f2433' }};padding:0.7rem 0.9rem;border-radius:12px;">
                     <div style="font-size:0.88rem;">{{ $message->message }}</div>
                     <div style="font-size:0.7rem;opacity:0.7;margin-top:0.35rem;">
                         {{ $message->created_at->format('M d, Y H:i') }}
@@ -30,7 +30,7 @@
     <form method="POST" action="{{ route('admin.chats.message', $conversation) }}" style="display:grid;gap:0.6rem;">
         @csrf
         <textarea name="message" rows="3" required maxlength="2000" style="padding:0.7rem;border-radius:10px;border:1px solid #d0d5dd;"></textarea>
-        <button type="submit" style="padding:0.7rem 1.2rem;border:none;border-radius:10px;background:#5b4cff;color:#fff;font-weight:700;width:fit-content;">
+        <button type="submit" style="padding:0.7rem 1.2rem;border:none;border-radius:10px;background:var(--shell-brand);color:#fff;font-weight:700;width:fit-content;">
             Send Reply
         </button>
     </form>

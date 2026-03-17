@@ -61,18 +61,33 @@ class ChatMessage extends Model
     }
 
    
-public function getAttachmentUrlAttribute()
-{
-    return $this->attachment_path ? asset('storage/' . $this->attachment_path) : null;
-}
+    public function getAttachmentUrlAttribute()
+    {
+        if (!$this->attachment_path) {
+            return null;
+        }
 
-public function hasAttachment()
-{
-    return !is_null($this->attachment_path);
-}
+        $path = ltrim($this->attachment_path, '/');
+        return '/storage/' . $path;
+    }
 
-public function isImage()
-{
-    return $this->attachment_type && str_starts_with($this->attachment_type, 'image/');
-}
+    public function hasAttachment()
+    {
+        return !is_null($this->attachment_path);
+    }
+
+    public function isImage()
+    {
+        if ($this->attachment_type && str_starts_with($this->attachment_type, 'image/')) {
+            return true;
+        }
+
+        $path = $this->attachment_path ?: $this->attachment_name;
+        if (!$path) {
+            return false;
+        }
+
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'], true);
+    }
 }

@@ -9,213 +9,173 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/app-shell.css') }}">
     
     <style>
         :root {
-            --bg: #f4f5fb;
-            --card: #ffffff;
-            --text: #1f2433;
-            --muted: #667085;
-            --primary: #5b4cff;
-            --border: #e5e7f1;
-            --radius: 14px;
-            --shadow: 0 10px 30px rgba(31,36,51,0.08);
+            --sidebar-width: 260px;
+            --topbar-height: 64px;
+            --shell-brand: #1f7a8c;
+            --shell-brand-strong: #16606d;
+            --shell-accent: #f2a65a;
+            --shell-bg: #f4f6fb;
+            --shell-card: #ffffff;
+            --shell-ink: #0f172a;
+            --shell-muted: #6b7280;
+            --shell-border: #e2e8f0;
+            --shell-soft: #eef2f6;
+            --shell-sidebar: #0f1b2a;
+            --shell-sidebar-ink: #e2e8f0;
+            --shell-sidebar-muted: rgba(226, 232, 240, 0.6);
+            --shell-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
         }
-        
-        * { box-sizing: border-box; }
-        
-        body {
-            margin: 0;
-            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-        }
-        
-        .admin-shell {
-            min-height: 100vh;
-            display: grid;
-            grid-template-columns: 260px 1fr;
-        }
-        
-        .sidebar {
-            background: #0f1224;
-            color: #fff;
-            padding: 1.5rem 1.2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-        }
-        
-        .brand {
-            font-weight: 800;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .brand i {
-            color: #f5b042;
-            font-size: 1.3rem;
-        }
-        
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            flex: 1;
-        }
-        
-        .nav-links a {
-            text-decoration: none;
-            color: #e4e7ff;
-            padding: 0.65rem 0.8rem;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-        
-        .nav-links a.active,
-        .nav-links a:hover {
-            background: rgba(91,76,255,0.2);
-            color: #fff;
-        }
-        
-        .nav-links a i {
-            width: 20px;
-            color: #f5b042;
-        }
-        
-        .sidebar .user-info {
-            margin-top: auto;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.85rem;
-        }
-        
-        .sidebar .user-name {
-            color: #fff;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-        }
-        
-        .sidebar .user-role {
-            color: #f5b042;
-            font-size: 0.75rem;
-            margin-bottom: 0.8rem;
-        }
-        
-        .sidebar .logout-form {
-            margin-top: 0.5rem;
-        }
-        
-        .sidebar .logout-form button {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            padding: 0.5rem 0.8rem;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-        
-        .sidebar .logout-form button:hover {
-            background: rgba(255,77,109,0.2);
-            border-color: #ff4d6d;
-        }
-        
-        .content {
-            padding: 2rem;
-            overflow-y: auto;
-            max-height: 100vh;
-        }
-        
+
         .flash {
-            background: #e7f7ef;
-            border: 1px solid #bde5ce;
-            color: #0f5132;
-            padding: 0.7rem 1rem;
-            border-radius: 10px;
+            background: rgba(31, 122, 140, 0.12);
+            border: 1px solid rgba(31, 122, 140, 0.2);
+            color: #0f3c45;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-weight: 600;
             margin-bottom: 1rem;
-        }
-        
-        @media (max-width: 900px) {
-            .admin-shell {
-                grid-template-columns: 1fr;
-            }
-            .sidebar {
-                display: none;
-            }
         }
     </style>
     @yield('extra_css')
 </head>
-<body>
-    <div class="admin-shell">
-        <aside class="sidebar">
-            <div class="brand">
-                <i class="bi bi-shield-lock-fill"></i> 
-                <span>BookHub Admin</span>
+<body class="admin-ui has-topbar">
+    <header class="app-topbar">
+        <div class="topbar-left">
+            <button class="icon-btn d-lg-none" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="topbar-brand" href="{{ route('admin.dashboard') }}">
+                <span class="brand-icon"><i class="bi bi-shield-lock-fill"></i></span>
+                <span class="brand-text">BookHub Admin</span>
+            </a>
+        </div>
+        <div class="topbar-right">
+            <span class="topbar-chip">
+                <i class="bi bi-stars"></i>
+                {{ ucfirst(str_replace('_', ' ', auth()->user()->account_type ?? 'admin')) }}
+            </span>
+            <div class="d-none d-md-flex align-items-center gap-2">
+                <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'Admin') }}&background=1f7a8c&color=fff&size=128" class="topbar-avatar" alt="Admin">
+                <span class="fw-semibold">{{ auth()->user()->name ?? 'Admin' }}</span>
             </div>
-            
-            <nav class="nav-links">
-                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="{{ route('admin.issue-reports.index') }}" class="{{ request()->routeIs('admin.issue-reports.*') ? 'active' : '' }}">
-                    <i class="bi bi-flag-fill"></i> Issue Reports
-                </a>
-                <a href="{{ route('admin.chats.index') }}" class="{{ request()->routeIs('admin.chats.*') ? 'active' : '' }}">
-                    <i class="bi bi-chat-dots-fill"></i> Support Chats
-                </a>
-                <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                    <i class="bi bi-people"></i> Site Users
-                </a>
-                <a href="{{ route('admin.admins.index') }}" class="{{ request()->routeIs('admin.admins.*') ? 'active' : '' }}">
-                    <i class="bi bi-person-fill-gear"></i> Admin Users
-                </a>
-                @if(auth()->user()?->account_type === 'super_admin')
-                <a href="{{ route('admin.admins.create') }}" class="{{ request()->routeIs('admin.admins.create') ? 'active' : '' }}">
-                    <i class="bi bi-person-plus-fill"></i> Create Admin
-                </a>
-                @endif
-            </nav>
-            
-            <div class="user-info">
-                <div class="user-name">{{ auth()->user()->name ?? 'Admin' }}</div>
-                <div class="user-role">{{ ucfirst(str_replace('_', ' ', auth()->user()->account_type ?? 'user')) }}</div>
-                
-                <form method="POST" action="{{ route('logout') }}" class="logout-form">
-                    @csrf
-                    <button type="submit">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </button>
-                </form>
+        </div>
+    </header>
+
+    @php
+        $adminSections = [
+            [
+                'label' => 'Overview',
+                'items' => [
+                    [
+                        'label' => 'Dashboard',
+                        'icon' => 'bi bi-speedometer2',
+                        'route' => 'admin.dashboard',
+                        'active' => request()->routeIs('admin.dashboard'),
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Support',
+                'items' => [
+                    [
+                        'label' => 'Issue Reports',
+                        'icon' => 'bi bi-flag-fill',
+                        'route' => 'admin.issue-reports.index',
+                        'active' => request()->routeIs('admin.issue-reports.*'),
+                    ],
+                    [
+                        'label' => 'Support Chats',
+                        'icon' => 'bi bi-chat-dots-fill',
+                        'route' => 'admin.chats.index',
+                        'active' => request()->routeIs('admin.chats.*'),
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Management',
+                'items' => array_values(array_filter([
+                    [
+                        'label' => 'Site Users',
+                        'icon' => 'bi bi-people',
+                        'route' => 'admin.users.index',
+                        'active' => request()->routeIs('admin.users.*'),
+                    ],
+                    [
+                        'label' => 'Admin Users',
+                        'icon' => 'bi bi-person-fill-gear',
+                        'route' => 'admin.admins.index',
+                        'active' => request()->routeIs('admin.admins.*'),
+                    ],
+                    auth()->user()?->account_type === 'super_admin' ? [
+                        'label' => 'Create Admin',
+                        'icon' => 'bi bi-person-plus-fill',
+                        'route' => 'admin.admins.create',
+                        'active' => request()->routeIs('admin.admins.create'),
+                    ] : null,
+                ])),
+            ],
+        ];
+    @endphp
+
+    <div class="app-shell">
+        <x-app-sidebar id="sidebar" brand="BookHub Admin" brandIcon="bi bi-shield-lock-fill" :sections="$adminSections">
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
+                </div>
+                <div class="user-meta">
+                    <div class="user-name">{{ auth()->user()->name ?? 'Admin' }}</div>
+                    <div class="user-role">{{ ucfirst(str_replace('_', ' ', auth()->user()->account_type ?? 'admin')) }}</div>
+                </div>
             </div>
-        </aside>
-        
-        <main class="content">
+            <form method="POST" action="{{ route('logout') }}" class="sidebar-logout">
+                @csrf
+                <button type="submit">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Logout
+                </button>
+            </form>
+        </x-app-sidebar>
+
+        <main class="app-content">
             @if (session('status'))
                 <div class="flash">{{ session('status') }}</div>
             @endif
-            
+
             @yield('content')
         </main>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const body = document.body;
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                body.classList.toggle('sidebar-open');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (
+                window.innerWidth <= 992 &&
+                body.classList.contains('sidebar-open') &&
+                !document.getElementById('sidebar')?.contains(e.target) &&
+                !sidebarToggle?.contains(e.target)
+            ) {
+                body.classList.remove('sidebar-open');
+            }
+        });
+    </script>
     @yield('extra_js')
 </body>
 </html>

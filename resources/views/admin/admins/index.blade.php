@@ -10,7 +10,7 @@
             <p style="color:#667085;margin-top:0.35rem;">Manage sub-admin and super-admin accounts.</p>
         </div>
         @if(auth()->user()?->account_type === 'super_admin')
-            <a href="{{ route('admin.admins.create') }}" style="text-decoration:none;background:#5b4cff;color:#fff;padding:0.6rem 1rem;border-radius:10px;font-weight:700;">
+            <a href="{{ route('admin.admins.create') }}" style="text-decoration:none;background:var(--shell-brand);color:#fff;padding:0.6rem 1rem;border-radius:10px;font-weight:700;">
                 <i class="bi bi-plus-circle"></i> New Admin
             </a>
         @endif

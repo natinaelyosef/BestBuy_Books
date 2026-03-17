@@ -23,7 +23,7 @@
                     <div style="text-align:right;font-size:0.75rem;color:#667085;">
                         <div>{{ optional($conversation->last_message_at)->format('M d, H:i') ?? $conversation->created_at->format('M d, H:i') }}</div>
                         @if($conversation->unread_count)
-                            <span style="background:#5b4cff;color:#fff;border-radius:999px;padding:0.1rem 0.5rem;font-weight:700;">{{ $conversation->unread_count }}</span>
+                            <span style="background:var(--shell-brand);color:#fff;border-radius:999px;padding:0.1rem 0.5rem;font-weight:700;">{{ $conversation->unread_count }}</span>
                         @endif
                     </div>
                 </div>

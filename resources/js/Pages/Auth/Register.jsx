@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -17,7 +13,7 @@ export default function Register() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [passwordStrength, setPasswordStrength] = useState({ percentage: 0, text: '', color: 'rgba(91,76,255,0.15)' });
+    const [passwordStrength, setPasswordStrength] = useState({ percentage: 0, text: '', color: 'rgba(31,122,140,0.15)' });
     const [fieldErrors, setFieldErrors] = useState({ name: '', email: '', password: '', password_confirmation: '', terms: '' });
     const [formProgress, setFormProgress] = useState(1);
 
@@ -32,10 +28,10 @@ export default function Register() {
             if (/[^a-zA-Z0-9]/.test(data.password)) strength++;
             const pct = Math.min((strength / 6) * 100, 100);
             if (strength <= 2) setPasswordStrength({ percentage: pct, text: 'Weak', color: '#ff4d6d' });
-            else if (strength <= 4) setPasswordStrength({ percentage: pct, text: 'Fair', color: '#f5b042' });
+            else if (strength <= 4) setPasswordStrength({ percentage: pct, text: 'Fair', color: '#f2a65a' });
             else setPasswordStrength({ percentage: pct, text: 'Strong', color: '#00c98b' });
         } else {
-            setPasswordStrength({ percentage: 0, text: '', color: 'rgba(91,76,255,0.15)' });
+            setPasswordStrength({ percentage: 0, text: '', color: 'rgba(31,122,140,0.15)' });
         }
     }, [data.password]);
 
@@ -47,7 +43,7 @@ export default function Register() {
 
     const validateName = (v) => {
         if (!/^[a-zA-Z0-9_]{3,20}$/.test(v)) {
-            setFieldErrors(p => ({ ...p, name: 'Username must be 3–20 characters: letters, numbers, underscores only' }));
+            setFieldErrors(p => ({ ...p, name: 'Username must be 3-20 characters: letters, numbers, underscores only' }));
             return false;
         }
         setFieldErrors(p => ({ ...p, name: '' }));
@@ -103,7 +99,7 @@ export default function Register() {
 
     const benefits = [
         { icon: 'bi-book-half',        text: 'Access thousands of books across all partner stores' },
-        { icon: 'bi-arrow-repeat',     text: 'Rent affordably or buy to own — your choice' },
+        { icon: 'bi-arrow-repeat',     text: 'Rent affordably or buy to own - your choice' },
         { icon: 'bi-shield-check',     text: 'Bank-level security & encrypted checkout' },
         { icon: 'bi-bell',             text: 'Personalized recommendations & reading lists' },
         { icon: 'bi-headset',          text: '24/7 customer support, always here for you' },
@@ -112,32 +108,33 @@ export default function Register() {
 
     return (
         <>
-            <Head title="Create Account — BookHub" />
+            <Head title="Create Account - BookHub" />
             <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
             <style>{`
                 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-                /* ── full-screen override — kills GuestLayout chrome ── */
-                body, #app, #app > div { margin: 0 !important; padding: 0 !important; background: #0c0a1a !important; }
+                /* -- full-screen override - kills GuestLayout chrome -- */
+                body, #app, #app > div { margin: 0 !important; padding: 0 !important; background: #0c1b24 !important; }
 
                 .rp-root {
-                    font-family: 'Outfit', system-ui, sans-serif;
+                    font-family: 'Space Grotesk', 'Source Sans 3', sans-serif;
                     display: flex;
                     min-height: 100vh;
                     width: 100%;
                     -webkit-font-smoothing: antialiased;
                 }
 
-                /* ═══════════════════════════
+                /* ---------------------------
                    LEFT PANEL
-                ═══════════════════════════ */
+                --------------------------- */
                 .rp-left {
                     width: 42%;
                     min-height: 100vh;
-                    background: linear-gradient(155deg, #0f1a3a 0%, #1a1050 48%, #0d1030 100%);
+                    background: linear-gradient(155deg, #102937 0%, #0f2b3a 48%, #0b2230 100%);
                     position: relative;
                     overflow: hidden;
                     display: flex;
@@ -150,7 +147,7 @@ export default function Register() {
                     content: '';
                     position: absolute; inset: 0; pointer-events: none;
                     background:
-                        radial-gradient(ellipse 80% 60% at 10% -10%, rgba(91,76,255,0.55) 0%, transparent 55%),
+                        radial-gradient(ellipse 80% 60% at 10% -10%, rgba(31,122,140,0.55) 0%, transparent 55%),
                         radial-gradient(ellipse 55% 50% at 90% 110%, rgba(245,176,66,0.22) 0%, transparent 55%);
                 }
 
@@ -160,7 +157,7 @@ export default function Register() {
                 }
                 .rp-ring-1 { width: 480px; height: 480px; top: -180px; right: -180px; }
                 .rp-ring-2 { width: 300px; height: 300px; bottom: -120px; left: -80px; border-color: rgba(245,176,66,0.07); }
-                .rp-ring-3 { width: 160px; height: 160px; top: 38%; left: 6%; border-color: rgba(91,76,255,0.2); }
+                .rp-ring-3 { width: 160px; height: 160px; top: 38%; left: 6%; border-color: rgba(31,122,140,0.2); }
 
                 .rp-left-inner { position: relative; z-index: 1; }
 
@@ -170,23 +167,23 @@ export default function Register() {
                 }
                 .rp-brand-icon {
                     width: 42px; height: 42px; border-radius: 12px;
-                    background: linear-gradient(135deg, #5b4cff 0%, #3d2fe0 100%);
+                    background: linear-gradient(135deg, #1f7a8c 0%, #16606d 100%);
                     display: flex; align-items: center; justify-content: center;
                     font-size: 1.1rem; color: #fff;
-                    box-shadow: 0 4px 18px rgba(91,76,255,0.45);
+                    box-shadow: 0 4px 18px rgba(31,122,140,0.45);
                 }
                 .rp-brand-text {
                     font-size: 1.15rem; font-weight: 800;
                     color: #fff; letter-spacing: -0.02em;
                 }
-                .rp-brand-text span { color: #f5b042; }
+                .rp-brand-text span { color: #f2a65a; }
 
                 .rp-eyebrow {
                     display: inline-flex; align-items: center; gap: 0.5rem;
                     padding: 0.3rem 0.9rem; border-radius: 999px;
                     background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);
                     font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-                    letter-spacing: 1.1px; color: #f5b042;
+                    letter-spacing: 1.1px; color: #f2a65a;
                     margin-bottom: 1.2rem;
                 }
                 .rp-dot {
@@ -201,7 +198,7 @@ export default function Register() {
                     color: #fff; line-height: 1.1; letter-spacing: -0.035em;
                     margin-bottom: 1rem;
                 }
-                .rp-left h1 em { font-style: normal; color: #f5b042; }
+                .rp-left h1 em { font-style: normal; color: #f2a65a; }
 
                 .rp-left > .rp-left-inner > p {
                     font-size: 0.95rem; color: rgba(255,255,255,0.5);
@@ -228,21 +225,21 @@ export default function Register() {
 
                 .rp-benefit-icon {
                     width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-                    background: rgba(91,76,255,0.25); border: 1px solid rgba(91,76,255,0.35);
+                    background: rgba(31,122,140,0.25); border: 1px solid rgba(31,122,140,0.35);
                     display: flex; align-items: center; justify-content: center;
-                    font-size: 0.95rem; color: #9b8fff;
+                    font-size: 0.95rem; color: #7cc4d1;
                 }
                 .rp-benefit span {
                     font-size: 0.82rem; color: rgba(255,255,255,0.65);
                     font-weight: 500; line-height: 1.4;
                 }
 
-                /* ═══════════════════════════
+                /* ---------------------------
                    RIGHT PANEL
-                ═══════════════════════════ */
+                --------------------------- */
                 .rp-right {
                     flex: 1;
-                    background: #f5f4ff;
+                    background: #f7f8f6;
                     min-height: 100vh;
                     display: flex;
                     flex-direction: column;
@@ -252,7 +249,7 @@ export default function Register() {
                 .rp-right-top {
                     display: flex; align-items: center; justify-content: space-between;
                     padding: 1.4rem 2.5rem;
-                    border-bottom: 1px solid rgba(91,76,255,0.1);
+                    border-bottom: 1px solid rgba(31,122,140,0.1);
                     background: rgba(255,255,255,0.7);
                     backdrop-filter: blur(12px);
                     position: sticky; top: 0; z-index: 10;
@@ -260,20 +257,20 @@ export default function Register() {
 
                 .rp-back {
                     display: flex; align-items: center; gap: 0.45rem;
-                    font-size: 0.82rem; font-weight: 700; color: #4e4a64;
+                    font-size: 0.82rem; font-weight: 700; color: #475569;
                     text-decoration: none; padding: 0.42rem 0.9rem;
-                    border-radius: 999px; border: 1.5px solid rgba(91,76,255,0.18);
+                    border-radius: 999px; border: 1.5px solid rgba(31,122,140,0.18);
                     background: rgba(255,255,255,0.8);
                     transition: all 180ms;
                 }
-                .rp-back:hover { color: #5b4cff; border-color: #5b4cff; background: rgba(91,76,255,0.06); }
+                .rp-back:hover { color: #1f7a8c; border-color: #1f7a8c; background: rgba(31,122,140,0.06); }
                 .rp-back i { font-size: 0.85rem; }
 
                 .rp-top-login {
-                    font-size: 0.82rem; color: #8a86a0;
+                    font-size: 0.82rem; color: #6b7280;
                 }
                 .rp-top-login a {
-                    color: #5b4cff; font-weight: 700; text-decoration: none; margin-left: 0.3rem;
+                    color: #1f7a8c; font-weight: 700; text-decoration: none; margin-left: 0.3rem;
                 }
                 .rp-top-login a:hover { text-decoration: underline; }
 
@@ -291,9 +288,9 @@ export default function Register() {
                 .rp-form-head { margin-bottom: 1.8rem; }
                 .rp-form-head h2 {
                     font-size: clamp(1.55rem, 2.5vw, 2rem); font-weight: 900;
-                    color: #14102b; letter-spacing: -0.03em; margin-bottom: 0.35rem;
+                    color: #0f172a; letter-spacing: -0.03em; margin-bottom: 0.35rem;
                 }
-                .rp-form-head p { font-size: 0.87rem; color: #8a86a0; }
+                .rp-form-head p { font-size: 0.87rem; color: #6b7280; }
 
                 /* progress */
                 .rp-progress {
@@ -307,27 +304,27 @@ export default function Register() {
                 .rp-step::after {
                     content: '';
                     position: absolute; top: 16px; left: 50%; right: -50%;
-                    height: 2px; background: rgba(91,76,255,0.15); z-index: 0;
+                    height: 2px; background: rgba(31,122,140,0.15); z-index: 0;
                 }
                 .rp-step:last-child::after { display: none; }
-                .rp-step.active::after { background: rgba(91,76,255,0.4); }
+                .rp-step.active::after { background: rgba(31,122,140,0.4); }
 
                 .rp-step-circle {
                     width: 32px; height: 32px; border-radius: 50%; z-index: 1;
-                    background: rgba(91,76,255,0.12); border: 2px solid rgba(91,76,255,0.2);
-                    color: #8a86a0; font-size: 0.8rem; font-weight: 800;
+                    background: rgba(31,122,140,0.12); border: 2px solid rgba(31,122,140,0.2);
+                    color: #6b7280; font-size: 0.8rem; font-weight: 800;
                     display: flex; align-items: center; justify-content: center;
                     transition: all 260ms;
                 }
                 .rp-step.active .rp-step-circle {
-                    background: #5b4cff; border-color: #5b4cff;
-                    color: #fff; box-shadow: 0 4px 14px rgba(91,76,255,0.4);
+                    background: #1f7a8c; border-color: #1f7a8c;
+                    color: #fff; box-shadow: 0 4px 14px rgba(31,122,140,0.4);
                 }
                 .rp-step-label {
                     font-size: 0.72rem; font-weight: 700;
-                    color: #8a86a0; letter-spacing: 0.3px;
+                    color: #6b7280; letter-spacing: 0.3px;
                 }
-                .rp-step.active .rp-step-label { color: #5b4cff; }
+                .rp-step.active .rp-step-label { color: #1f7a8c; }
 
                 /* server error banner */
                 .rp-errors {
@@ -346,20 +343,20 @@ export default function Register() {
                 .rp-field { margin-bottom: 1.2rem; }
                 .rp-label {
                     display: block; font-size: 0.78rem; font-weight: 700;
-                    color: #4e4a64; margin-bottom: 0.5rem; letter-spacing: 0.2px;
+                    color: #475569; margin-bottom: 0.5rem; letter-spacing: 0.2px;
                 }
                 .rp-input-wrap { position: relative; }
                 .rp-input-icon {
                     position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-                    color: #b0aac8; font-size: 0.95rem; pointer-events: none; z-index: 2;
+                    color: #9aa3b2; font-size: 0.95rem; pointer-events: none; z-index: 2;
                 }
                 .rp-input-wrap input,
                 .rp-input-wrap select {
                     width: 100%;
                     padding: 0.8rem 1rem 0.8rem 2.6rem;
-                    border: 1.5px solid rgba(91,76,255,0.18);
-                    border-radius: 11px; font-family: 'Outfit', sans-serif;
-                    font-size: 0.9rem; color: #14102b;
+                    border: 1.5px solid rgba(31,122,140,0.18);
+                    border-radius: 11px; font-family: 'Space Grotesk', 'Source Sans 3', sans-serif;
+                    font-size: 0.9rem; color: #0f172a;
                     background: #fff;
                     outline: none;
                     transition: all 200ms;
@@ -367,23 +364,23 @@ export default function Register() {
                 }
                 .rp-input-wrap input:focus,
                 .rp-input-wrap select:focus {
-                    border-color: #5b4cff;
-                    box-shadow: 0 0 0 3px rgba(91,76,255,0.12);
+                    border-color: #1f7a8c;
+                    box-shadow: 0 0 0 3px rgba(31,122,140,0.12);
                 }
                 .rp-input-wrap input.ok { border-color: #00c98b; }
                 .rp-input-wrap input.ok:focus { box-shadow: 0 0 0 3px rgba(0,201,139,0.12); }
                 .rp-input-wrap input.err,
                 .rp-input-wrap select.err { border-color: #ff4d6d; }
                 .rp-input-wrap input.err:focus { box-shadow: 0 0 0 3px rgba(255,77,109,0.12); }
-                .rp-input-wrap input::placeholder { color: #b0aac8; }
+                .rp-input-wrap input::placeholder { color: #9aa3b2; }
 
                 .rp-eye-btn {
                     position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
                     background: none; border: none; cursor: pointer;
-                    color: #b0aac8; font-size: 0.9rem; padding: 4px; z-index: 3;
+                    color: #9aa3b2; font-size: 0.9rem; padding: 4px; z-index: 3;
                     transition: color 160ms;
                 }
-                .rp-eye-btn:hover { color: #5b4cff; }
+                .rp-eye-btn:hover { color: #1f7a8c; }
 
                 .rp-field-err {
                     display: flex; align-items: center; gap: 0.35rem;
@@ -396,7 +393,7 @@ export default function Register() {
                 .rp-strength { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
                 .rp-strength-bar {
                     flex: 1; height: 5px; border-radius: 999px;
-                    background: rgba(91,76,255,0.1); overflow: hidden;
+                    background: rgba(31,122,140,0.1); overflow: hidden;
                 }
                 .rp-strength-fill {
                     height: 100%; border-radius: 999px;
@@ -414,21 +411,21 @@ export default function Register() {
                 .rp-terms {
                     display: flex; align-items: flex-start; gap: 0.75rem;
                     padding: 1rem; border-radius: 11px;
-                    background: rgba(91,76,255,0.05);
-                    border: 1.5px solid rgba(91,76,255,0.12);
+                    background: rgba(31,122,140,0.05);
+                    border: 1.5px solid rgba(31,122,140,0.12);
                     margin-bottom: 1.4rem; cursor: pointer;
                     transition: border-color 200ms;
                 }
-                .rp-terms:has(input:checked) { border-color: #5b4cff; background: rgba(91,76,255,0.08); }
+                .rp-terms:has(input:checked) { border-color: #1f7a8c; background: rgba(31,122,140,0.08); }
                 .rp-terms input[type="checkbox"] {
                     width: 18px; height: 18px; border-radius: 5px; cursor: pointer;
-                    accent-color: #5b4cff; flex-shrink: 0; margin-top: 2px;
+                    accent-color: #1f7a8c; flex-shrink: 0; margin-top: 2px;
                 }
                 .rp-terms-text {
-                    font-size: 0.8rem; color: #4e4a64; line-height: 1.55;
+                    font-size: 0.8rem; color: #475569; line-height: 1.55;
                 }
                 .rp-terms-text a {
-                    color: #5b4cff; font-weight: 700; text-decoration: none;
+                    color: #1f7a8c; font-weight: 700; text-decoration: none;
                 }
                 .rp-terms-text a:hover { text-decoration: underline; }
 
@@ -436,18 +433,18 @@ export default function Register() {
                 .rp-submit {
                     width: 100%;
                     padding: 0.9rem 1.5rem;
-                    background: linear-gradient(135deg, #5b4cff 0%, #3d2fe0 100%);
+                    background: linear-gradient(135deg, #1f7a8c 0%, #16606d 100%);
                     color: #fff; border: none; border-radius: 12px;
-                    font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 800;
+                    font-family: 'Space Grotesk', 'Source Sans 3', sans-serif; font-size: 0.95rem; font-weight: 800;
                     cursor: pointer; letter-spacing: 0.2px;
                     display: flex; align-items: center; justify-content: center; gap: 0.6rem;
                     transition: all 200ms;
-                    box-shadow: 0 6px 22px rgba(91,76,255,0.35);
+                    box-shadow: 0 6px 22px rgba(31,122,140,0.35);
                     margin-bottom: 0;
                 }
                 .rp-submit:hover:not(:disabled) {
                     transform: translateY(-2px);
-                    box-shadow: 0 10px 30px rgba(91,76,255,0.45);
+                    box-shadow: 0 10px 30px rgba(31,122,140,0.45);
                 }
                 .rp-submit:active:not(:disabled) { transform: translateY(0); }
                 .rp-submit:disabled { opacity: 0.65; cursor: not-allowed; }
@@ -455,25 +452,25 @@ export default function Register() {
                 /* divider */
                 .rp-divider {
                     display: flex; align-items: center; gap: 0.75rem;
-                    margin: 1.2rem 0; color: #b0aac8; font-size: 0.75rem; font-weight: 600;
+                    margin: 1.2rem 0; color: #9aa3b2; font-size: 0.75rem; font-weight: 600;
                 }
                 .rp-divider::before, .rp-divider::after {
-                    content: ''; flex: 1; height: 1px; background: rgba(91,76,255,0.12);
+                    content: ''; flex: 1; height: 1px; background: rgba(31,122,140,0.12);
                 }
 
                 .rp-login-cta {
                     text-align: center;
-                    font-size: 0.85rem; color: #8a86a0;
+                    font-size: 0.85rem; color: #6b7280;
                 }
                 .rp-login-cta a {
-                    color: #5b4cff; font-weight: 700;
+                    color: #1f7a8c; font-weight: 700;
                     text-decoration: none; margin-left: 0.25rem;
                 }
                 .rp-login-cta a:hover { text-decoration: underline; }
 
-                /* ═══════════════════════════
+                /* ---------------------------
                    RESPONSIVE
-                ═══════════════════════════ */
+                --------------------------- */
                 @media (max-width: 900px) {
                     .rp-root { flex-direction: column; }
                     .rp-left { width: 100%; min-height: auto; padding: 2.5rem 2rem 2rem; }
@@ -492,7 +489,7 @@ export default function Register() {
 
             <div className="rp-root">
 
-                {/* ── LEFT ── */}
+                {/* -- LEFT -- */}
                 <div className="rp-left">
                     <div className="rp-ring rp-ring-1"></div>
                     <div className="rp-ring rp-ring-2"></div>
@@ -510,7 +507,7 @@ export default function Register() {
                         </div>
 
                         <h1>Your Next <em>Great Read</em><br />Awaits You</h1>
-                        <p>Create a free account and unlock thousands of books from multiple stores — rent affordably or buy to own, all in one place.</p>
+                        <p>Create a free account and unlock thousands of books from multiple stores - rent affordably or buy to own, all in one place.</p>
 
                         <div className="rp-benefits-title">Why BookHub?</div>
                         <div className="rp-benefits">
@@ -524,7 +521,7 @@ export default function Register() {
                     </div>
                 </div>
 
-                {/* ── RIGHT ── */}
+                {/* -- RIGHT -- */}
                 <div className="rp-right">
 
                     {/* sticky top bar */}
@@ -544,7 +541,7 @@ export default function Register() {
                             {/* heading */}
                             <div className="rp-form-head">
                                 <h2>Create your account</h2>
-                                <p>Fill in your details below to get started — it takes under a minute.</p>
+                                <p>Fill in your details below to get started - it takes under a minute.</p>
                             </div>
 
                             {/* progress */}
@@ -631,8 +628,8 @@ export default function Register() {
                                             onChange={e => setData('account_type', e.target.value)}
                                             required
                                         >
-                                            <option value="customer">Customer — Browse & Buy/Rent Books</option>
-                                            <option value="store_owner">Store Owner — List & Sell Books</option>
+                                            <option value="customer">Customer - Browse & Buy/Rent Books</option>
+                                            <option value="store_owner">Store Owner - List & Sell Books</option>
                                         </select>
                                     </div>
                                 </div>
@@ -736,7 +733,7 @@ export default function Register() {
                                 {/* Submit */}
                                 <button type="submit" className="rp-submit" disabled={processing}>
                                     {processing
-                                        ? <><i className="bi bi-arrow-repeat" style={{ animation: 'spin 1s linear infinite' }}></i> Creating Account…</>
+                                        ? <><i className="bi bi-arrow-repeat" style={{ animation: 'spin 1s linear infinite' }}></i> Creating Account...</>
                                         : <><i className="bi bi-person-check-fill"></i> Create My Account</>
                                     }
                                 </button>
@@ -761,3 +758,6 @@ export default function Register() {
         </>
     );
 }
+
+
+

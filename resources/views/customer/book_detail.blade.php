@@ -33,8 +33,8 @@
             <!-- Quick Actions -->
             <div class="book-actions-vertical">
                 @php
-                    $wishlistIds = session('wishlist', []);
-                    $isInWishlist = in_array($book->id, $wishlistIds);
+                    $wishlistIds = $wishlistIds ?? array_map('intval', session('wishlist', []));
+                    $isInWishlist = in_array((int) $book->id, $wishlistIds, true);
                 @endphp
                 
                 <form id="wishlist-form-{{ $book->id }}" method="POST" action="{{ $isInWishlist ? route('wishlist.remove', $book->id) : route('wishlist.add', $book->id) }}" style="display: none;">
@@ -161,6 +161,44 @@
                     @endif
                 </div>
             </div>
+
+            @if($book->pdf_path)
+            <div class="pdf-section">
+                <div class="pdf-card">
+                    <div class="pdf-info">
+                        <div class="pdf-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+                        <div>
+                            <h3>Digital PDF</h3>
+                            <p>Request a downloadable copy from the store owner.</p>
+                        </div>
+                    </div>
+                    <div class="pdf-actions">
+                        @if($pdfRequest && $pdfRequest->status === 'approved')
+                            <a href="{{ route('customer.pdfs.download', $pdfRequest->id) }}" class="pdf-btn pdf-btn-primary">
+                                <i class="bi bi-download"></i> Download PDF
+                            </a>
+                        @elseif($pdfRequest && $pdfRequest->status === 'pending')
+                            <button class="pdf-btn pdf-btn-muted" disabled>Request Pending</button>
+                        @elseif($pdfRequest && $pdfRequest->status === 'rejected')
+                            <form method="POST" action="{{ route('customer.pdf.request', $book->id) }}">
+                                @csrf
+                                <button type="submit" class="pdf-btn pdf-btn-secondary">
+                                    <i class="bi bi-arrow-repeat"></i> Request Again
+                                </button>
+                            </form>
+                            <span class="pdf-note">Last request was declined.</span>
+                        @else
+                            <form method="POST" action="{{ route('customer.pdf.request', $book->id) }}">
+                                @csrf
+                                <button type="submit" class="pdf-btn pdf-btn-primary">
+                                    <i class="bi bi-send"></i> Request PDF
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Quick Message Preview -->
             <div class="quick-message-section">
@@ -868,6 +906,107 @@
     color: var(--danger);
 }
 
+/* PDF Request */
+.pdf-section {
+    margin-top: 2rem;
+}
+
+.pdf-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.1rem 1.3rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+}
+
+.pdf-info {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.pdf-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(245, 176, 66, 0.15);
+    color: var(--accent);
+    font-size: 1.3rem;
+}
+
+.pdf-info h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.pdf-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.pdf-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.6rem 1.15rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.pdf-btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.pdf-btn-primary:hover {
+    background: var(--primary-dark);
+    color: #fff;
+}
+
+.pdf-btn-secondary {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: rgba(245, 176, 66, 0.3);
+}
+
+.pdf-btn-secondary:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.pdf-btn-muted {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border-color: var(--border);
+    cursor: not-allowed;
+}
+
+.pdf-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -919,6 +1058,11 @@
     .send-message-btn {
         width: 100%;
         justify-content: center;
+    }
+
+    .pdf-card {
+        flex-direction: column;
+        align-items: flex-start;
     }
     
     .similar-books-grid {

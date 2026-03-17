@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="card" style="max-width: 600px;">
-    <a href="{{ route('admin.admins.index') }}" style="text-decoration:none;color:#5b4cff;font-weight:700;display:inline-block;margin-bottom:1rem;">
+    <a href="{{ route('admin.admins.index') }}" style="text-decoration:none;color:var(--shell-brand);font-weight:700;display:inline-block;margin-bottom:1rem;">
         <i class="bi bi-arrow-left"></i> Back to Admin Users
     </a>
 
@@ -59,7 +59,7 @@
         </div>
 
         <div style="margin-top:1rem;">
-            <button type="submit" style="background:#5b4cff;color:#fff;border:none;padding:0.7rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;">
+            <button type="submit" style="background:var(--shell-brand);color:#fff;border:none;padding:0.7rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;">
                 <i class="bi bi-save"></i> Save Changes
             </button>
         </div>

@@ -6,7 +6,7 @@
 <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
         <div>
-            <a href="{{ route('admin.users.index') }}" style="text-decoration:none;color:#5b4cff;font-size:0.85rem;font-weight:600;"><i class="bi bi-arrow-left"></i> Back to Users</a>
+            <a href="{{ route('admin.users.index') }}" style="text-decoration:none;color:var(--shell-brand);font-size:0.85rem;font-weight:600;"><i class="bi bi-arrow-left"></i> Back to Users</a>
             <h1 style="margin:0.5rem 0 0 0;">{{ $user->name }}</h1>
             <p style="color:#667085;margin-top:0.35rem;">{{ ucfirst(str_replace('_', ' ', $user->account_type)) }} Profile</p>
         </div>
@@ -136,7 +136,7 @@
                         <td style="padding:0.8rem;">{{ ucfirst(str_replace('_', ' ', $report->status)) }}</td>
                         <td style="padding:0.8rem;">{{ $report->created_at->format('M d, Y') }}</td>
                         <td style="padding:0.8rem;text-align:right;">
-                            <a href="{{ route('admin.issue-reports.show', $report) }}" style="color:#5b4cff;text-decoration:none;font-weight:600;">View</a>
+                            <a href="{{ route('admin.issue-reports.show', $report) }}" style="color:var(--shell-brand);text-decoration:none;font-weight:600;">View</a>
                         </td>
                     </tr>
                     @empty

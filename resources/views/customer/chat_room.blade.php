@@ -39,7 +39,7 @@
         </div>
 
         <!-- Messages -->
-        <div class="card-body" id="messages-container" style="height: 500px; overflow-y: auto; background: #f8f9fa;">
+        <div class="card-body" id="messages-container" style="height: min(500px, 65vh); overflow-y: auto; background: #f8f9fa;">
             @forelse($messages as $message)
                 <div class="message-item mb-3 {{ $message->sender_id === auth()->id() ? 'text-end' : '' }}">
                     <div class="d-inline-block" style="max-width: 70%;">

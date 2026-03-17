@@ -105,7 +105,7 @@
 @php
     $baseParams = request()->except('page', 'genre', 'availability');
     $hasFilters = !empty($searchQuery) || !empty($selectedGenre) || !empty($selectedAvailability);
-    $wishlistIds = array_map('intval', session('wishlist', []));
+    $wishlistIds = $wishlistIds ?? array_map('intval', session('wishlist', []));
 @endphp
 
 <!-- =============================================================

@@ -89,6 +89,10 @@
                                 <span style="background: #3498db; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
                                     RENTAL
                                 </span>
+                                @elseif($order['order_type'] === 'mixed')
+                                <span style="background: #9b59b6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
+                                    MIXED
+                                </span>
                                 @else
                                 <span style="background: #2ecc71; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
                                     PURCHASE

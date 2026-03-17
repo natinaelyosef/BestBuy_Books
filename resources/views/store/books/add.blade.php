@@ -150,6 +150,18 @@
                                 </div>
                             </div>
 
+                            <!-- PDF UPLOAD SECTION -->
+                            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-8 space-y-4">
+                                <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                                    Book PDF
+                                </h2>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-600">Upload PDF (optional)</label>
+                                    <input type="file" name="pdf_file" accept="application/pdf" class="form-control mt-2">
+                                    <p class="text-xs text-gray-500 mt-2">PDF up to 20MB.</p>
+                                </div>
+                            </div>
+
                             <!-- STICKY ACTION BAR -->
                             <div class="sticky bottom-0 border-t border-gray-200 p-6 flex justify-end gap-4 rounded-b-2xl shadow-lg bg-white">
                                 <button type="button"

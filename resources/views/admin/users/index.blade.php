@@ -23,7 +23,7 @@
                 <option value="banned" @selected(request('status') == 'banned')>Banned</option>
                 <option value="restricted" @selected(request('status') == 'restricted')>Restricted</option>
             </select>
-            <button type="submit" style="background:#5b4cff;color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;cursor:pointer;"><i class="bi bi-search"></i></button>
+            <button type="submit" style="background:var(--shell-brand);color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;cursor:pointer;"><i class="bi bi-search"></i></button>
         </form>
     </div>
 
@@ -65,7 +65,7 @@
                     </td>
                     <td style="padding:0.7rem 0.4rem;">{{ $user->created_at->format('M Y') }}</td>
                     <td style="padding:0.7rem 0.4rem;text-align:right;">
-                        <a href="{{ route('admin.users.show', $user) }}" style="text-decoration:none;color:#5b4cff;font-weight:700;">View Profile</a>
+                        <a href="{{ route('admin.users.show', $user) }}" style="text-decoration:none;color:var(--shell-brand);font-weight:700;">View Profile</a>
                     </td>
                 </tr>
                 @empty

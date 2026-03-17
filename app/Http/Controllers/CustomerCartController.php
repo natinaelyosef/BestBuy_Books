@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class CustomerCartController extends Controller
 {
@@ -52,6 +55,12 @@ class CustomerCartController extends Controller
 
     public function checkout(Request $request)
     {
+        if (!$this->ordersAvailable()) {
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Orders are not available yet. Please run migrations.');
+        }
+
         $cart = $this->getCart($request);
         if (empty($cart)) {
             return redirect()
@@ -60,61 +69,59 @@ class CustomerCartController extends Controller
         }
 
         $cartItems = $this->buildCartItems($cart);
-        $hasRent = false;
-        $hasBuy = false;
-        $total = 0;
 
-        foreach ($cartItems as $item) {
-            $total += $item['price'];
-            if ($item['type'] === 'rent') {
-                $hasRent = true;
-            } else {
-                $hasBuy = true;
+        $itemsByStore = collect($cartItems)->groupBy(function ($item) {
+            return $item['book']->user_id;
+        });
+
+        $sequence = (Order::max('id') ?? 0);
+
+        foreach ($itemsByStore as $storeId => $items) {
+            $hasRent = false;
+            $hasBuy = false;
+            $total = 0;
+
+            foreach ($items as $item) {
+                $total += $item['price'];
+                if ($item['type'] === 'rent') {
+                    $hasRent = true;
+                } else {
+                    $hasBuy = true;
+                }
             }
-        }
 
-        $orderType = 'buy';
-        if ($hasRent && !$hasBuy) {
-            $orderType = 'rent';
-        } else if ($hasRent && $hasBuy) {
-            $orderType = 'mixed';
-        }
+            $orderType = 'buy';
+            if ($hasRent && !$hasBuy) {
+                $orderType = 'rent';
+            } elseif ($hasRent && $hasBuy) {
+                $orderType = 'mixed';
+            }
 
-        $orders = $request->session()->get('orders', []);
-        $nextId = count($orders) + 1;
-        $orderNumber = 'BH' . now()->format('Ymd') . str_pad((string) $nextId, 4, '0', STR_PAD_LEFT);
+            $sequence++;
+            $orderNumber = 'BH' . now()->format('Ymd') . str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
 
-        $orders[] = [
-            'id' => $nextId,
-            'order_number' => $orderNumber,
-            'created_at' => now()->toDateTimeString(),
-            'order_type' => $orderType,
-            'status' => 'pending',
-            'total_amount' => $total,
-            'delivery_option' => 'pickup',
-            'delivery_fee' => 0,
-            'delivery_address' => null,
-            'notes' => null,
-            'store_notes' => null,
-            'store' => [
-                'store_name' => 'BookHub',
-                'address' => null,
-                'city' => null,
-                'phone' => null,
-                'email' => null,
-            ],
-            'items' => array_map(function ($item) {
-                return [
+            $order = Order::create([
+                'order_number' => $orderNumber,
+                'customer_id' => $request->user()->id,
+                'store_id' => $storeId,
+                'order_type' => $orderType,
+                'status' => 'pending',
+                'total_amount' => $total,
+                'delivery_option' => 'pickup',
+                'delivery_fee' => 0,
+            ]);
+
+            foreach ($items as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
                     'book_id' => $item['book']->id,
-                    'type' => $item['type'],
-                    'price' => $item['price'],
+                    'item_type' => $item['type'],
                     'quantity' => 1,
                     'rental_days' => $item['type'] === 'rent' ? 30 : null,
-                ];
-            }, $cartItems),
-        ];
-
-        $request->session()->put('orders', $orders);
+                    'price' => $item['price'],
+                ]);
+            }
+        }
         $request->session()->forget('cart');
 
         return redirect()
@@ -181,5 +188,10 @@ class CustomerCartController extends Controller
             ];
         }
         return $items;
+    }
+
+    private function ordersAvailable(): bool
+    {
+        return Schema::hasTable('orders') && Schema::hasTable('order_items');
     }
 }
