@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', 'My Orders - BookHub')
+@section('title', 'My Orders - BestBuy_Books')
 
 @section('content')
 <div class="container">
@@ -119,12 +119,12 @@
                             </td>
                             <td style="padding: 20px;">
                                 <div style="display: flex; gap: 10px;">
-                                    <a href="{{ route('orders.show', $order['id']) }}" 
+                                    <a href="{{ route('customer.orders.show', $order['id']) }}" 
                                        style="color: #3498db; text-decoration: none; padding: 6px 12px; border: 1px solid #3498db; border-radius: 4px; font-size: 0.9rem;">
                                         <i class="fas fa-eye"></i> View
                                     </a>
                                     @if($order['status'] === 'delivered')
-                                    <form method="POST" action="{{ route('orders.finish', $order['id']) }}" style="display: inline;">
+                                    <form method="POST" action="{{ route('customer.orders.finish', $order['id']) }}" style="display: inline;">
                                         @csrf
                                         <button type="submit" style="color: #f39c12; background: transparent; padding: 6px 12px; border: 1px solid #f39c12; border-radius: 4px; font-size: 0.9rem;">
                                             <i class="fas fa-check-double"></i> Finished
@@ -183,7 +183,7 @@
                     </div>
 
                     <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                        <a href="{{ route('orders.show', $order['id']) }}" 
+                        <a href="{{ route('customer.orders.show', $order['id']) }}" 
                            style="color: #3498db; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
                             <i class="fas fa-eye"></i> View Details
                         </a>

@@ -26,7 +26,7 @@ class CustomerPdfController extends Controller
 
         $requests = BookPdfRequest::query()
             ->with(['book', 'store'])
-            ->where('customer_id', $customer->id)
+            ->where('user_id', $customer->id)
             ->latest('id')
             ->get();
 
@@ -56,7 +56,7 @@ class CustomerPdfController extends Controller
 
         $existing = BookPdfRequest::query()
             ->where('book_id', $book->id)
-            ->where('customer_id', $customer->id)
+            ->where('user_id', $customer->id)
             ->first();
 
         if ($existing) {
@@ -85,7 +85,7 @@ class CustomerPdfController extends Controller
 
         BookPdfRequest::create([
             'book_id' => $book->id,
-            'customer_id' => $customer->id,
+            'user_id' => $customer->id,
             'store_id' => $book->user_id,
             'status' => 'pending',
         ]);

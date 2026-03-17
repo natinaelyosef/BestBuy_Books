@@ -1,5 +1,5 @@
 @props([
-    'brand' => 'BookHub',
+    'brand' => 'BestBuy_Books',
     'brandIcon' => 'bi bi-book-half',
     'sections' => [],
 ])

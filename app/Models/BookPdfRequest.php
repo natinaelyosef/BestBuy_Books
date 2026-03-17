@@ -11,7 +11,7 @@ class BookPdfRequest extends Model
 
     protected $fillable = [
         'book_id',
-        'customer_id',
+        'user_id',
         'store_id',
         'status',
         'approved_at',
@@ -30,7 +30,7 @@ class BookPdfRequest extends Model
 
     public function customer()
     {
-        return $this->belongsTo(User::class, 'customer_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function store()

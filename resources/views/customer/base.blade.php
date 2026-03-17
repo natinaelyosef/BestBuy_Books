@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'BookHub · Find Your Next Read')</title>
+    <title>@yield('title', 'BestBuy_Books · Find Your Next Read')</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -784,23 +784,23 @@
           <i class="bi bi-person-plus-fill"></i> Register
         </a>
       @else
-        <a href="{{ route('wishlist.index') }}" class="nav-btn">
+        <a href="{{ route('customer.wishlist.index') }}" class="nav-btn">
           <i class="bi bi-heart-fill"></i> Wishlist
         </a>
-        <a href="{{ route('orders.index') }}" class="nav-btn">
+        <a href="{{ route('customer.orders.index') }}" class="nav-btn">
           <i class="bi bi-receipt"></i> Orders
         </a>
         <a href="{{ route('customer.pdfs.index') }}" class="nav-btn">
           <i class="bi bi-file-earmark-pdf"></i> My PDFs
         </a>
-        <a href="{{ route('chat.index') }}" class="nav-btn cart-btn">
+        <a href="{{ route('customer.chat.index') }}" class="nav-btn cart-btn">
           <i class="bi bi-chat-dots-fill"></i> Chat
           <span class="cart-badge" id="chat-unread-badge" style="display:none;">0</span>
         </a>
-        <a href="{{ route('issue-reports.index') }}" class="nav-btn">
+        <a href="{{ route('customer.issue-reports.index') }}" class="nav-btn">
           <i class="bi bi-flag-fill"></i> Issues
         </a>
-        <a href="{{ route('cart.index') }}" class="nav-btn cart-btn">
+        <a href="{{ route('customer.cart.index') }}" class="nav-btn cart-btn">
           <i class="bi bi-bag-fill"></i>
           <span class="cart-badge" id="cart-count">{{ $cartCount }}</span>
         </a>
@@ -816,7 +816,7 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
             <li>
-              <a class="dropdown-item" href="{{ route('profile.edit') }}">
+              <a class="dropdown-item" href="{{ route('customer.profile.edit') }}">
                 <i class="bi bi-person-fill"></i> Profile
               </a>
             </li>
@@ -854,13 +854,12 @@
     <a href="{{ route('login') }}" class="nav-btn"><i class="bi bi-box-arrow-in-right"></i> Login</a>
     <a href="{{ route('register') }}" class="nav-btn"><i class="bi bi-person-plus-fill"></i> Register</a>
   @else
-    <a href="{{ route('wishlist.index') }}" class="nav-btn"><i class="bi bi-heart-fill"></i> Wishlist</a>
-    <a href="{{ route('orders.index') }}" class="nav-btn"><i class="bi bi-receipt"></i> Orders</a>
-    <a href="{{ route('customer.pdfs.index') }}" class="nav-btn"><i class="bi bi-file-earmark-pdf"></i> My PDFs</a>
-    <a href="{{ route('chat.index') }}" class="nav-btn"><i class="bi bi-chat-dots-fill"></i> Chat</a>
-    <a href="{{ route('issue-reports.index') }}" class="nav-btn"><i class="bi bi-flag-fill"></i> Issues</a>
-    <a href="{{ route('cart.index') }}" class="nav-btn"><i class="bi bi-bag-fill"></i> Cart</a>
-    <a href="{{ route('profile.edit') }}" class="nav-btn"><i class="bi bi-person-fill"></i> Profile</a>
+    <a href="{{ route('customer.wishlist.index') }}" class="nav-btn"><i class="bi bi-heart-fill"></i> Wishlist</a>
+    <a href="{{ route('customer.orders.index') }}" class="nav-btn"><i class="bi bi-receipt"></i> Orders</a>
+    <a href="{{ route('customer.chat.index') }}" class="nav-btn"><i class="bi bi-chat-dots-fill"></i> Chat</a>
+    <a href="{{ route('customer.issue-reports.index') }}" class="nav-btn"><i class="bi bi-flag-fill"></i> Issues</a>
+    <a href="{{ route('customer.cart.index') }}" class="nav-btn"><i class="bi bi-bag-fill"></i> Cart</a>
+    <a href="{{ route('customer.profile.edit') }}" class="nav-btn"><i class="bi bi-person-fill"></i> Profile</a>
     <form method="POST" action="{{ route('logout') }}" style="width:100%;">
       @csrf
       <button type="submit" class="nav-btn" style="width:100%;justify-content:flex-start;">
@@ -996,10 +995,10 @@
     <div class="footer-col">
       <h4>Account</h4>
       <ul class="footer-links">
-        <li><a href="{{ route('profile.edit') }}">My Profile</a></li>
+        <li><a href="{{ route('customer.profile.edit') }}">My Profile</a></li>
         <li><a href="#">Order History</a></li>
         <li><a href="#">Reading List</a></li>
-        <li><a href="{{ route('issue-reports.create') }}">Report Issue</a></li>
+        <li><a href="{{ route('customer.issue-reports.create') }}">Report Issue</a></li>
         <li><a href="#">Sign Out</a></li>
       </ul>
     </div>
@@ -1007,7 +1006,7 @@
   </div>
 
   <div class="footer-bottom">
-    <div class="footer-copy">© 2025 BookHub Store. All rights reserved. Books from multiple partner stores.</div>
+    <div class="footer-copy">© 2025 BestBuy_Books Store. All rights reserved. Books from multiple partner stores.</div>
     <div class="footer-badges">
       <span class="foot-badge"><i class="bi bi-shield-check"></i> SSL Secured</span>
       <span class="foot-badge"><i class="bi bi-lock-fill"></i> 256-bit Encrypted</span>
@@ -1044,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── CART COUNT ──
     @auth
-    fetch('{{ route('cart.count') }}')
+    fetch('{{ route('customer.cart.count') }}')
         .then(r => r.json())
         .then(d => { const el = document.getElementById('cart-count'); if (el) el.textContent = d.count || 0; })
         .catch(() => {});
@@ -1053,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── CHAT UNREAD ──
     @auth
     function updateChatBadge() {
-        fetch('{{ route('chat.unread') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        fetch('{{ route('customer.chat.unread') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(r => r.json())
             .then(d => {
                 const b = document.getElementById('chat-unread-badge');

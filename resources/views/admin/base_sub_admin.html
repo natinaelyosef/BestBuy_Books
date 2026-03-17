@@ -1123,8 +1123,13 @@
 
         function applyTheme(dark) {
             html.setAttribute('data-theme', dark ? 'dark' : 'light');
-            themeIcon.className = dark ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
-            themeIcon.style.fontSize = '0.7rem';
+            if (dark) {
+                themeIcon.className = 'bi bi-moon-stars-fill';
+                themeIcon.style.fontSize = '0.7rem';
+            } else {
+                themeIcon.className = 'bi bi-sun-fill';
+                themeIcon.style.fontSize = '0.7rem';
+            }
             localStorage.setItem('bh-theme', dark ? 'dark' : 'light');
         }
 
@@ -1133,7 +1138,8 @@
         applyTheme(saved ? saved === 'dark' : prefersDark);
 
         themeBtn?.addEventListener('click', () => {
-            applyTheme(html.getAttribute('data-theme') !== 'dark');
+            const currentTheme = html.getAttribute('data-theme');
+            applyTheme(currentTheme !== 'dark');
         });
 
         // ── SIDEBAR ──

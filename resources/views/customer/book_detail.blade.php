@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', $book->title . ' - BookHub')
+@section('title', $book->title . ' - BestBuy_Books')
 
 @section('content')
 <div class="book-detail-container">
@@ -37,7 +37,7 @@
                     $isInWishlist = in_array((int) $book->id, $wishlistIds, true);
                 @endphp
                 
-                <form id="wishlist-form-{{ $book->id }}" method="POST" action="{{ $isInWishlist ? route('wishlist.remove', $book->id) : route('wishlist.add', $book->id) }}" style="display: none;">
+                <form id="wishlist-form-{{ $book->id }}" method="POST" action="{{ $isInWishlist ? route('customer.wishlist.remove', $book->id) : route('customer.wishlist.add', $book->id) }}" style="display: none;">
                     @csrf
                 </form>
                 
@@ -81,7 +81,7 @@
                         <span class="online-status offline"><i class="bi bi-circle-fill"></i> Offline</span>
                     @endif
                 </div>
-                <a href="{{ route('chat.with.store', $book->user->id) }}?book={{ $book->id }}" 
+                <a href="{{ route('customer.chat.with.store', $book->user->id) }}?book={{ $book->id }}" 
                    class="message-owner-btn">
                     <i class="bi bi-chat-dots-fill"></i>
                     Message Store Owner
@@ -135,7 +135,7 @@
                     <div class="price-amount">${{ number_format($book->rental_price, 2) }}</div>
                     <div class="price-period">per month</div>
                     @if($book->available_rent > 0)
-                        <a href="{{ route('cart.add.rent', $book->id) }}" class="action-button rental-button">
+                        <a href="{{ route('customer.cart.add.rent', $book->id) }}" class="action-button rental-button">
                             <i class="bi bi-cart-plus"></i>
                             Add to Cart
                         </a>
@@ -152,7 +152,7 @@
                     <div class="price-amount">${{ number_format($book->sale_price, 2) }}</div>
                     <div class="price-period">one-time payment</div>
                     @if($book->available_sale > 0)
-                        <a href="{{ route('cart.add.buy', $book->id) }}" class="action-button purchase-button">
+                        <a href="{{ route('customer.cart.add.buy', $book->id) }}" class="action-button purchase-button">
                             <i class="bi bi-cart-plus"></i>
                             Add to Cart
                         </a>
@@ -203,7 +203,7 @@
             <!-- Quick Message Preview -->
             <div class="quick-message-section">
                 <h3>Have a question about this book?</h3>
-                <form action="{{ route('chat.with.store', $book->user->id) }}" method="GET" class="quick-message-form">
+                <form action="{{ route('customer.chat.with.store', $book->user->id) }}" method="GET" class="quick-message-form">
                     <input type="hidden" name="book" value="{{ $book->id }}">
                     <input type="text" name="message_preview" 
                            placeholder="e.g., Is this book available for rent?" 
@@ -228,7 +228,7 @@
         <div class="similar-books-grid">
             @foreach($similarBooks as $similar)
             <div class="similar-book-card">
-                <a href="{{ route('books.show', $similar->id) }}" class="similar-book-link">
+                <a href="{{ route('customer.books.show', $similar->id) }}" class="similar-book-link">
                     <div class="similar-book-cover">
                         @if($similar->cover_image_path)
                             <img src="{{ asset($similar->cover_image_path) }}" alt="{{ $similar->title }}">
@@ -1104,7 +1104,7 @@ function shareBook() {
     if (navigator.share) {
         navigator.share({
             title: '{{ $book->title }}',
-            text: 'Check out this book on BookHub!',
+            text: 'Check out this book on BestBuy_Books!',
             url: window.location.href
         }).catch(console.error);
     } else {

@@ -103,6 +103,11 @@ class ChatConversation extends Model
 
     public function getOtherParticipant($userId)
     {
-        return $this->customer_id === $userId ? $this->store : $this->customer;
+        if ($this->customer_id === $userId) {
+            return $this->store;
+        } elseif ($this->store_id === $userId) {
+            return $this->customer;
+        }
+        return null;
     }
 }

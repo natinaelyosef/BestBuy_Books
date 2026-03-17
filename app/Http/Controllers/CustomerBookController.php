@@ -54,7 +54,7 @@ class CustomerBookController extends Controller
             if (Schema::hasTable('book_pdf_requests')) {
                 $pdfRequest = BookPdfRequest::query()
                     ->where('book_id', $book->id)
-                    ->where('customer_id', auth()->id())
+                    ->where('user_id', auth()->id())
                     ->latest('id')
                     ->first();
             }

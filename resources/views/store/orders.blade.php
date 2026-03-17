@@ -101,7 +101,7 @@
                                     <span class="badge bg-{{ $statusClass }}">{{ $order->status_label }}</span>
                                 </td>
                                 <td class="text-end">
-                                    <form method="POST" action="{{ route('store.orders.update', $order->id) }}" class="d-inline-flex gap-2 align-items-center flex-wrap justify-content-end">
+                                    <form method="POST" action="{{ route('store.orders.update-status', $order->id) }}" class="d-inline-flex gap-2 align-items-center flex-wrap justify-content-end">
                                         @csrf
                                         @method('PUT')
                                         <select name="status" class="form-select form-select-sm" style="min-width: 160px;">

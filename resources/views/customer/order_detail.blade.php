@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', 'Order Details - BookHub')
+@section('title', 'Order Details - BestBuy_Books')
 
 @section('content')
 <div class="container">
@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <p style="color: #7f8c8d; margin: 0 0 5px 0; font-size: 0.9rem;">Store</p>
-                    <p style="margin: 0; font-weight: 600; color: #2c3e50;">{{ $order['store']['store_name'] ?? 'BookHub' }}</p>
+                    <p style="margin: 0; font-weight: 600; color: #2c3e50;">{{ $order['store']['store_name'] ?? 'BestBuy_Books' }}</p>
                 </div>
             </div>
         </div>
@@ -109,7 +109,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
                 <div>
                     <h4 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 1.1rem;">
-                        {{ $order['store']['store_name'] ?? 'BookHub' }}
+                        {{ $order['store']['store_name'] ?? 'BestBuy_Books' }}
                     </h4>
                     @if(!empty($order['store']['address']))
                     <p style="margin: 0 0 10px 0; color: #7f8c8d;">
@@ -145,14 +145,14 @@
         </div>
         
         <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 30px;">
-            <a href="{{ route('orders.index') }}" class="btn" 
+            <a href="{{ route('customer.orders.index') }}" class="btn"
                style="background: #95a5a6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600;">
                 <i class="fas fa-arrow-left"></i> Back to Orders
             </a>
             
             <div style="display: flex; gap: 15px;">
                 @if($order['status'] === 'delivered')
-                <form method="POST" action="{{ route('orders.finish', $order['id']) }}" style="display: inline;">
+                <form method="POST" action="{{ route('customer.orders.finish', $order['id']) }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn" 
                         style="background: #16a085; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; border: none;">

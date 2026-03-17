@@ -28,7 +28,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" enctype="multipart/form-data" class="space-y-10" action="{{ route('books.store') }}">
+                        <form method="POST" enctype="multipart/form-data" class="space-y-10" action="{{ route('store.books.store') }}">
                             @csrf
 
                             <!-- SECTION CARD STYLE -->

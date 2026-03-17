@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', 'Shopping Cart - BookHub Store')
+@section('title', 'Shopping Cart - BestBuy_Books Store')
 
 @section('content')
 <div class="container">
@@ -35,10 +35,10 @@
                     <div class="item-price">
                         <div class="price-amount">${{ number_format($item['price'], 2) }}</div>
                         <div class="item-actions">
-                            <a href="{{ route('cart.remove', [$item['book']->id, $item['type']]) }}" class="btn btn-small btn-danger">
+                            <a href="{{ route('customer.cart.remove', [$item['book']->id, $item['type']]) }}" class="btn btn-small btn-danger">
                                 <i class="fas fa-trash"></i> Remove
                             </a>
-                            <a href="{{ route('books.show', $item['book']->id) }}" class="btn btn-small btn-secondary">
+                            <a href="{{ route('customer.books.show', $item['book']->id) }}" class="btn btn-small btn-secondary">
                                 <i class="fas fa-eye"></i> View
                             </a>
                         </div>

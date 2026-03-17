@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="BookHub Admin Dashboard - Manage your bookstore platform">
-    <title>@yield('title', 'BookHub Admin')</title>
+    <meta name="description" content="BestBuy_Books Admin Dashboard - Manage your bookstore platform">
+    <title>{% block title %}BestBuy_Books Admin{% endblock %}</title>
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -933,7 +933,7 @@
             </button>
 
             <!-- Brand -->
-            <a class="navbar-brand me-0" href="{{ route('dashboard_super') }}">
+            <a class="navbar-brand me-0" href="{% url 'dashboard_admin' %}">
                 <div class="brand-icon">
                     <i class="bi bi-book-half"></i>
                 </div>
@@ -1039,8 +1039,9 @@
                             </div>
                         </li>
                         <li><hr class="dropdown-divider my-1" style="border-color:var(--border);"></li>
-                        <li><a class="dropdown-item" href="{% url 'super_admin_profile' %}"><i class="bi bi-person"></i>Profile</a></li>
-                
+                        <li><a class="dropdown-item" href="{% url 'sub_admin_profile' %}"><i class="bi bi-person"></i>Profile</a></li>
+                      
+
                         <li><hr class="dropdown-divider my-1" style="border-color:var(--border);"></li>
                         <li>
                             <a class="dropdown-item" style="color:var(--danger);" href="{% url 'logout' %}">
@@ -1056,82 +1057,52 @@
 
     <!-- ===== SIDEBAR ===== -->
     <aside id="sidebar" role="navigation" aria-label="Sidebar navigation">
-        <div class="sidebar-heading">Main</div>
+     
 
-        <a href="{% url 'dashboard_super' %}" class="sidebar-item active" aria-current="page">
-            <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
-            <span class="badge" style="background:rgba(91,76,255,0.3); color:var(--primary-light);">New</span>
-        </a>
+        
 
         <div class="sidebar-divider"></div>
-        <div class="sidebar-heading">Administration</div>
-
-        <a href="{{ route('register_admin') }}" class="sidebar-item {{ request()->routeIs('register_admin') ? 'active' : '' }}">
-            <i class="bi bi-person-plus"></i>
-            <span>Create Admin</span>
-        </a>
-        <a href="{{ route('view_admins') }}" class="sidebar-item {{ request()->routeIs('view_admins') ? 'active' : '' }}">
-            <i class="bi bi-people"></i>
-            <span>Manage Admins</span>
-            <span class="badge" style="background:rgba(0,201,139,0.2); color:var(--success);">{{ $total_admins ?? 8 }}</span>
-        </a>
-        <a href="{{ route('super_admin_sub_admin_controls') }}" class="sidebar-item {{ request()->routeIs('super_admin_sub_admin_controls') ? 'active' : '' }}">
-            <i class="bi bi-person-lines-fill"></i>
-            <span>Sub-Admin Control</span>
-        </a>
+    
 
         <div class="sidebar-divider"></div>
         <div class="sidebar-heading">Escalations</div>
-        <a href="{{ route('super_admin_issue_reports') }}" class="sidebar-item {{ request()->routeIs('super_admin_issue_reports') ? 'active' : '' }}">
+        <a href="{% url 'sub_admin_issue_reports' %}" class="sidebar-item">
             <i class="bi bi-flag"></i>
             <span>Issue Reports</span>
         </a>
-        <a href="{{ route('super_admin_support_chat_list') }}" class="sidebar-item {{ request()->routeIs('super_admin_support_chat_list') ? 'active' : '' }}">
+        <a href="{% url 'sub_admin_support_chat_list' %}" class="sidebar-item">
             <i class="bi bi-chat-dots"></i>
             <span>Support Chats</span>
         </a>
 
         <div class="sidebar-footer">
-            <a href="{{ route('logout') }}" class="sidebar-item logout" onclick="event.preventDefault(); document.getElementById('sidebar-logout-form').submit();">
+            <a href="{% url 'logout' %}" class="sidebar-item logout">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Logout</span>
             </a>
-            <form id="sidebar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
         </div>
     </aside>
 
     <!-- ===== MAIN CONTENT ===== -->
     <main id="content" role="main" tabindex="-1">
-        @if(session()->has('messages'))
+        {% if messages %}
             <div class="position-fixed top-0 end-0 p-3" style="z-index:1050;">
-                @foreach(session('messages') as $message)
-                    <div class="alert-custom {{ $message['type'] ?? 'info' }} fade-in-up"
+                {% for message in messages %}
+                    <div class="alert-custom {{ message.tags|default:'info' }} fade-in-up"
                          role="alert"
                          data-aos="fade-down">
-                        <i class="bi 
-                            @if($message['type'] == 'error') bi-exclamation-triangle-fill
-                            @elseif($message['type'] == 'warning') bi-exclamation-circle-fill
-                            @else bi-check-circle-fill
-                            @endif fs-5"></i>
+                        <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% elif message.tags == 'warning' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} fs-5"></i>
                         <div>
-                            <strong class="d-block">
-                                @if($message['type'] == 'error') Error
-                                @elseif($message['type'] == 'warning') Warning
-                                @else Success
-                                @endif
-                            </strong>
-                            {{ $message['text'] }}
+                            <strong class="d-block">{% if message.tags == 'error' %}Error{% elif message.tags == 'warning' %}Warning{% else %}Success{% endif %}</strong>
+                            {{ message }}
                         </div>
                         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                @endforeach
+                {% endfor %}
             </div>
-        @endif
+        {% endif %}
 
-        @yield('content')
+        {% block content %}{% endblock %}
     </main>
 
     <!-- Bootstrap JS -->
@@ -1154,10 +1125,11 @@
             html.setAttribute('data-theme', dark ? 'dark' : 'light');
             if (dark) {
                 themeIcon.className = 'bi bi-moon-stars-fill';
+                themeIcon.style.fontSize = '0.7rem';
             } else {
                 themeIcon.className = 'bi bi-sun-fill';
+                themeIcon.style.fontSize = '0.7rem';
             }
-            themeIcon.style.fontSize = '0.7rem';
             localStorage.setItem('bh-theme', dark ? 'dark' : 'light');
         }
 
@@ -1166,8 +1138,8 @@
         applyTheme(saved ? saved === 'dark' : prefersDark);
 
         themeBtn?.addEventListener('click', () => {
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            applyTheme(!isDark);
+            const currentTheme = html.getAttribute('data-theme');
+            applyTheme(currentTheme !== 'dark');
         });
 
         // ── SIDEBAR ──

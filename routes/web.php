@@ -65,31 +65,29 @@ Route::get('/dashboard', function (Request $request) {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Customer Dashboard
-Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('customer.dashboard');
-
-// Customer Book Routes
-Route::get('/customer/books/{book}', [CustomerBookController::class, 'show'])
-    ->name('books.show');
-
 /*
 |--------------------------------------------------------------------------
-| Authenticated Customer Routes
+| Customer Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'account_type:customer'])->prefix('customer')->name('customer.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');
+    
+    // Books
+    Route::get('/books', [CustomerDashboardController::class, 'index'])->name('books.index');
+    Route::get('/books/{book}', [CustomerBookController::class, 'show'])->name('books.show');
+    
     // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Customer Issue Reports
-    Route::get('/customer/issue-reports', [CustomerIssueReportController::class, 'index'])->name('issue-reports.index');
-    Route::get('/customer/issue-reports/create', [CustomerIssueReportController::class, 'create'])->name('issue-reports.create');
-    Route::post('/customer/issue-reports', [CustomerIssueReportController::class, 'store'])->name('issue-reports.store');
-    Route::get('/customer/issue-reports/{issueReport}', [CustomerIssueReportController::class, 'show'])->name('issue-reports.show');
+    
+    // Issue Reports
+    Route::get('/issue-reports', [CustomerIssueReportController::class, 'index'])->name('issue-reports.index');
+    Route::get('/issue-reports/create', [CustomerIssueReportController::class, 'create'])->name('issue-reports.create');
+    Route::post('/issue-reports', [CustomerIssueReportController::class, 'store'])->name('issue-reports.store');
+    Route::get('/issue-reports/{issueReport}', [CustomerIssueReportController::class, 'show'])->name('issue-reports.show');
 
     /*
     |--------------------------------------------------------------------------
@@ -97,36 +95,36 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     // Main chat listing
-    Route::get('/customer/chat', [CustomerChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat', [CustomerChatController::class, 'index'])->name('chat.index');
     
     // Start new conversation (POST form)
-    Route::post('/customer/chat', [CustomerChatController::class, 'startConversation'])->name('chat.start');
+    Route::post('/chat', [CustomerChatController::class, 'startConversation'])->name('chat.start');
     
     // Start conversation with specific store owner (GET from book page)
-    Route::get('/customer/chat/with-store/{storeId}', [CustomerChatController::class, 'startWithStore'])->name('chat.with.store');
+    Route::get('/chat/with-store/{storeId}', [CustomerChatController::class, 'startWithStore'])->name('chat.with.store');
     
     // View specific conversation - THIS MUST COME AFTER specific routes
-    Route::get('/customer/chat/{conversation}', [CustomerChatController::class, 'show'])->name('chat.show');
+    Route::get('/chat/{conversation}', [CustomerChatController::class, 'show'])->name('chat.show');
     
     // Send message (AJAX with attachment support)
-    Route::post('/customer/chat/{conversation}/send', [CustomerChatController::class, 'sendMessage'])->name('chat.send');
+    Route::post('/chat/{conversation}/send', [CustomerChatController::class, 'sendMessage'])->name('chat.send');
     
     // Mark messages as read
-    Route::post('/customer/chat/{conversation}/mark-read', [CustomerChatController::class, 'markAsRead'])->name('chat.mark-read');
+    Route::post('/chat/{conversation}/mark-read', [CustomerChatController::class, 'markAsRead'])->name('chat.mark-read');
     
     // Poll for new messages
-    Route::get('/customer/chat/{conversation}/poll', [CustomerChatController::class, 'pollMessages'])->name('chat.poll');
+    Route::get('/chat/{conversation}/poll', [CustomerChatController::class, 'pollMessages'])->name('chat.poll');
     
     // Get stores list for new chat (AJAX)
-    Route::get('/customer/chat/stores/list', [CustomerChatController::class, 'getStores'])->name('chat.stores');
+    Route::get('/chat/stores/list', [CustomerChatController::class, 'getStores'])->name('chat.stores');
     
     // Get unread count (AJAX)
-    Route::get('/customer/chat/unread-count', [CustomerChatController::class, 'getUnreadCount'])->name('chat.unread');
+    Route::get('/chat/unread-count', [CustomerChatController::class, 'getUnreadCount'])->name('chat.unread');
 
     // Customer PDF Requests
-    Route::get('/customer/pdfs', [CustomerPdfController::class, 'index'])->name('customer.pdfs.index');
-    Route::post('/customer/books/{book}/pdf-request', [CustomerPdfController::class, 'storeRequest'])->name('customer.pdf.request');
-    Route::get('/customer/pdfs/{pdfRequest}/download', [CustomerPdfController::class, 'download'])->name('customer.pdfs.download');
+    Route::get('/pdfs', [CustomerPdfController::class, 'index'])->name('pdfs.index');
+    Route::post('/books/{book}/pdf-request', [CustomerPdfController::class, 'storeRequest'])->name('pdf.request');
+    Route::get('/pdfs/{pdfRequest}/download', [CustomerPdfController::class, 'download'])->name('pdfs.download');
 });
 
 // Include Auth Routes
@@ -134,148 +132,130 @@ require __DIR__ . '/auth.php';
 
 /*
 |--------------------------------------------------------------------------
-| Customer Routes (Cart, Wishlist, Orders)
+| Customer Cart, Wishlist & Order Routes
 |--------------------------------------------------------------------------
 */
+Route::middleware(['auth', 'account_type:customer'])->prefix('customer')->name('customer.')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Wishlist Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/wishlist', [CustomerWishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/add/{book}', [CustomerWishlistController::class, 'add'])->name('wishlist.add');
+    Route::post('/wishlist/remove/{book}', [CustomerWishlistController::class, 'remove'])->name('wishlist.remove');
+    Route::delete('/wishlist/clear', [CustomerWishlistController::class, 'clear'])->name('wishlist.clear');
 
-// Wishlist Routes - Support both GET and POST for form submissions
-Route::match(['get', 'post'], '/customer/wishlist', [CustomerWishlistController::class, 'index'])
-    ->middleware('auth')
-    ->name('wishlist.index');
+    /*
+    |--------------------------------------------------------------------------
+    | Cart Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/cart', [CustomerCartController::class, 'index'])->name('cart.index');
+    Route::get('/cart/add/rent/{book}', [CustomerCartController::class, 'addRent'])->name('cart.add.rent');
+    Route::get('/cart/add/buy/{book}', [CustomerCartController::class, 'addBuy'])->name('cart.add.buy');
+    Route::get('/cart/remove/{book}/{type}', [CustomerCartController::class, 'remove'])->name('cart.remove');
+    Route::get('/cart/count', [CustomerCartController::class, 'count'])->name('cart.count');
     
-Route::match(['get', 'post'], '/customer/wishlist/add/{book}', [CustomerWishlistController::class, 'add'])
-    ->middleware('auth')
-    ->name('wishlist.add');
-    
-Route::match(['get', 'post'], '/customer/wishlist/remove/{book}', [CustomerWishlistController::class, 'remove'])
-    ->middleware('auth')
-    ->name('wishlist.remove');
-    
-Route::match(['get', 'post'], '/customer/wishlist/clear', [CustomerWishlistController::class, 'clear'])
-    ->middleware('auth')
-    ->name('wishlist.clear');
-
-// Cart Routes
-Route::get('/customer/cart', [CustomerCartController::class, 'index'])
-    ->middleware('auth')
-    ->name('cart.index');
-    
-Route::get('/customer/cart/add/rent/{book}', [CustomerCartController::class, 'addRent'])
-    ->middleware('auth')
-    ->name('cart.add.rent');
-    
-Route::get('/customer/cart/add/buy/{book}', [CustomerCartController::class, 'addBuy'])
-    ->middleware('auth')
-    ->name('cart.add.buy');
-    
-Route::get('/customer/cart/remove/{book}/{type}', [CustomerCartController::class, 'remove'])
-    ->middleware('auth')
-    ->name('cart.remove');
-    
-Route::get('/get-cart-count', [CustomerCartController::class, 'count'])
-    ->middleware('auth')
-    ->name('cart.count');
-
-// Checkout & Orders
-Route::get('/customer/checkout', [CustomerCartController::class, 'checkout'])
-    ->middleware('auth')
-    ->name('orders.checkout');
-    
-Route::get('/customer/orders', [CustomerOrderController::class, 'index'])
-    ->middleware('auth')
-    ->name('orders.index');
-    
-Route::get('/customer/orders/{order}', [CustomerOrderController::class, 'show'])
-    ->middleware('auth')
-    ->name('orders.show');
-    
-Route::post('/customer/orders/{order}/finish', [CustomerOrderController::class, 'markFinished'])
-    ->middleware('auth')
-    ->name('orders.finish');
+    /*
+    |--------------------------------------------------------------------------
+    | Order Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/checkout', [CustomerCartController::class, 'checkout'])->name('orders.checkout');
+    Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/finish', [CustomerOrderController::class, 'markFinished'])->name('orders.finish');
+});
 
 /*
 |--------------------------------------------------------------------------
 | Store Owner Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'account_type:store_owner'])->prefix('store')->name('store.')->group(function () {
     // Store Dashboard
-    Route::get('/store/dashboard', function (Request $request) {
+    Route::get('/dashboard', function (Request $request) {
         if ($request->header('X-Inertia')) {
             return Inertia::location(url('/store/dashboard'));
         }
         return view('store.dashboard');
-    })->name('store.dashboard');
-
-    // Store Views
-    Route::get('/store/orders', [StoreOrderController::class, 'index'])->name('store.orders');
-    Route::put('/store/orders/{order}/status', [StoreOrderController::class, 'updateStatus'])->name('store.orders.update');
-    Route::get('/store/wishlist', [StoreWishlistController::class, 'index'])->name('store.wishlist');
-
-    // Store PDF Requests
-    Route::get('/store/pdf-requests', [StorePdfRequestController::class, 'index'])->name('store.pdf-requests.index');
-    Route::put('/store/pdf-requests/{pdfRequest}/approve', [StorePdfRequestController::class, 'approve'])->name('store.pdf-requests.approve');
-    Route::put('/store/pdf-requests/{pdfRequest}/reject', [StorePdfRequestController::class, 'reject'])->name('store.pdf-requests.reject');
-
-    // Book Management
-    Route::get('/store/books/add', [BookController::class, 'create'])->name('add.book.registration');
-    Route::post('/store/books', [BookController::class, 'store'])->name('books.store');
-    Route::get('/store/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
-    Route::put('/store/books/{book}', [BookController::class, 'update'])->name('books.update');
-    Route::delete('/store/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
-    Route::get('/store/inventory', [BookController::class, 'index'])->name('view.inventory');
-    Route::get('/store/books/manage', [BookController::class, 'manage'])->name('manage.books');
-    Route::get('/store/books/{book}/pdf', [BookController::class, 'downloadPdf'])->name('store.books.pdf');
-
-    // Store Registration
-    Route::get('/store/registration', [StoreRegistrationController::class, 'create'])
-        ->name('store.registration.create');
-    Route::post('/store/registration', [StoreRegistrationController::class, 'store'])
-        ->name('store.registration.store');
-    Route::get('/store/registration/update', [StoreRegistrationController::class, 'edit'])
-        ->name('store.registration.edit');
-    Route::post('/store/registration/update', [StoreRegistrationController::class, 'update'])
-        ->name('store.registration.update');
-    Route::delete('/store/registration/{store}', [StoreRegistrationController::class, 'destroy'])
-        ->name('store.registration.destroy');
-    Route::get('/store/registration/view', [StoreRegistrationController::class, 'show'])
-        ->name('store.registration.view');
+    })->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
-    | Store Chat Routes
+    | Book Management
     |--------------------------------------------------------------------------
     */
-    // Main chat listing
-    Route::get('/store/chats', [StoreChatController::class, 'index'])->name('store.chat.index');
-    
-    // View conversation
-    Route::get('/store/chat/{conversation}', [StoreChatController::class, 'show'])->name('store.chat.show');
-    
-    // Send message (AJAX with attachment support)
-    Route::post('/store/chat/{conversation}/send', [StoreChatController::class, 'sendMessage'])->name('store.chat.send');
-    
-    // Mark messages as read
-    Route::post('/store/chat/{conversation}/mark-read', [StoreChatController::class, 'markAsRead'])->name('store.chat.mark-read');
-    
-    // Poll for new messages
-    Route::get('/store/chat/{conversation}/poll', [StoreChatController::class, 'pollMessages'])->name('store.chat.poll');
-    
-    // Start new conversation
-    Route::post('/store/chat/start', [StoreChatController::class, 'startConversation'])->name('store.chat.start');
-    
-    // Delete conversation
-    Route::delete('/store/chat/{conversation}', [StoreChatController::class, 'destroy'])->name('store.chat.destroy');
-    
-    // Get unread count
-    Route::get('/store/chat/unread-count', [StoreChatController::class, 'getUnreadCount'])->name('store.chat.unread');
+    Route::get('/inventory', [BookController::class, 'index'])->name('inventory');
+    Route::get('/books/manage', [BookController::class, 'manage'])->name('books.manage');
+    Route::get('/books/add', [BookController::class, 'create'])->name('books.create');
+    Route::post('/books', [BookController::class, 'store'])->name('books.store');
+    Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
+    Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
+    Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
+    Route::get('/books/{book}/pdf', [BookController::class, 'downloadPdf'])->name('books.pdf');
 
-    // Store Issue Reports
-    Route::get('/store/issue-reports', [StoreIssueReportController::class, 'index'])->name('store.issue-reports.index');
-    Route::get('/store/issue-reports/create', [StoreIssueReportController::class, 'create'])->name('store.issue-reports.create');
-    Route::post('/store/issue-reports', [StoreIssueReportController::class, 'store'])->name('store.issue-reports.store');
-    Route::get('/store/issue-reports/{issueReport}', [StoreIssueReportController::class, 'show'])->name('store.issue-reports.show');
+    /*
+    |--------------------------------------------------------------------------
+    | Order Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/orders', [StoreOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [StoreOrderController::class, 'show'])->name('orders.show');
+    Route::put('/orders/{order}/status', [StoreOrderController::class, 'updateStatus'])->name('orders.update-status');
 
+    /*
+    |--------------------------------------------------------------------------
+    | Wishlist Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/wishlist', [StoreWishlistController::class, 'index'])->name('wishlist.index');
+
+    /*
+    |--------------------------------------------------------------------------
+    | PDF Requests Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/pdf-requests', [StorePdfRequestController::class, 'index'])->name('pdf-requests.index');
+    Route::put('/pdf-requests/{pdfRequest}/approve', [StorePdfRequestController::class, 'approve'])->name('pdf-requests.approve');
+    Route::put('/pdf-requests/{pdfRequest}/reject', [StorePdfRequestController::class, 'reject'])->name('pdf-requests.reject');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Store Registration Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/registration', [StoreRegistrationController::class, 'create'])->name('registration.create');
+    Route::post('/registration', [StoreRegistrationController::class, 'store'])->name('registration.store');
+    Route::get('/registration/update', [StoreRegistrationController::class, 'edit'])->name('registration.edit');
+    Route::post('/registration/update', [StoreRegistrationController::class, 'update'])->name('registration.update');
+    Route::delete('/registration/{store}', [StoreRegistrationController::class, 'destroy'])->name('registration.destroy');
+    Route::get('/registration/view', [StoreRegistrationController::class, 'show'])->name('registration.view');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chat Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/chats', [StoreChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/{conversation}', [StoreChatController::class, 'show'])->name('chat.show');
+    Route::post('/chat/{conversation}/send', [StoreChatController::class, 'sendMessage'])->name('chat.send');
+    Route::post('/chat/{conversation}/mark-read', [StoreChatController::class, 'markAsRead'])->name('chat.mark-read');
+    Route::get('/chat/{conversation}/poll', [StoreChatController::class, 'pollMessages'])->name('chat.poll');
+    Route::post('/chat/start', [StoreChatController::class, 'startConversation'])->name('chat.start');
+    Route::delete('/chat/{conversation}', [StoreChatController::class, 'destroy'])->name('chat.destroy');
+    Route::get('/chat/unread-count', [StoreChatController::class, 'getUnreadCount'])->name('chat.unread');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Issue Reports Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/issue-reports', [StoreIssueReportController::class, 'index'])->name('issue-reports.index');
+    Route::get('/issue-reports/create', [StoreIssueReportController::class, 'create'])->name('issue-reports.create');
+    Route::post('/issue-reports', [StoreIssueReportController::class, 'store'])->name('issue-reports.store');
+    Route::get('/issue-reports/{issueReport}', [StoreIssueReportController::class, 'show'])->name('issue-reports.show');
 });
 
 /*
@@ -290,7 +270,11 @@ Route::middleware(['auth', 'account_type:sub_admin,super_admin'])
         // Admin Dashboard
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // Issue Reports Management
+        /*
+        |--------------------------------------------------------------------------
+        | Issue Reports Management
+        |--------------------------------------------------------------------------
+        */
         Route::get('/issue-reports', [AdminIssueReportController::class, 'index'])->name('issue-reports.index');
         Route::get('/issue-reports/{issueReport}', [AdminIssueReportController::class, 'show'])->name('issue-reports.show');
         Route::put('/issue-reports/{issueReport}', [AdminIssueReportController::class, 'update'])->name('issue-reports.update');
@@ -299,12 +283,20 @@ Route::middleware(['auth', 'account_type:sub_admin,super_admin'])
         Route::post('/issue-reports/{issueReport}/restrict', [AdminIssueReportController::class, 'restrictUser'])->name('issue-reports.restrict');
         Route::post('/issue-reports/{issueReport}/resolve', [AdminIssueReportController::class, 'resolve'])->name('issue-reports.resolve');
         
-        // Support Chats Management
+        /*
+        |--------------------------------------------------------------------------
+        | Support Chats Management
+        |--------------------------------------------------------------------------
+        */
         Route::get('/chats', [AdminChatController::class, 'index'])->name('chats.index');
         Route::get('/chats/{conversation}', [AdminChatController::class, 'show'])->name('chats.show');
         Route::post('/chats/{conversation}/message', [AdminChatController::class, 'sendMessage'])->name('chats.message');
         
-        // Site Users Management (all customers & store owners)
+        /*
+        |--------------------------------------------------------------------------
+        | Site Users Management (all customers & store owners)
+        |--------------------------------------------------------------------------
+        */
         Route::get('/users', [AdminUserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [AdminUserManagementController::class, 'show'])->name('users.show');
         Route::post('/users/{user}/ban', [AdminUserManagementController::class, 'banUser'])->name('users.ban');
@@ -313,7 +305,11 @@ Route::middleware(['auth', 'account_type:sub_admin,super_admin'])
         Route::post('/users/{user}/restrict', [AdminUserManagementController::class, 'restrictUser'])->name('users.restrict');
         Route::post('/users/{user}/unrestrict', [AdminUserManagementController::class, 'unrestrictUser'])->name('users.unrestrict');
         
-        // Admin Users Management
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Users Management
+        |--------------------------------------------------------------------------
+        */
         Route::get('/admins', [AdminUserController::class, 'index'])->name('admins.index');
         Route::get('/admins/create', [AdminUserController::class, 'create'])
             ->middleware('account_type:super_admin')
@@ -334,3 +330,9 @@ Route::middleware(['auth', 'account_type:sub_admin,super_admin'])
             ->middleware('account_type:super_admin')
             ->name('admins.toggle-active');
     });
+Route::get('/store/book/add', [BookController::class, 'create'])->name('add.book.registration');
+
+// Global profile management route for all users (including store owners)
+Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+// Added missing route for inventory view (for dashboard link)
+Route::get('/store/inventory/view', [BookController::class, 'index'])->name('view.inventory');

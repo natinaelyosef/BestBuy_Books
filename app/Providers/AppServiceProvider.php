@@ -54,8 +54,9 @@ class AppServiceProvider extends ServiceProvider
             $pendingPdfRequestsCount = 0;
             if (Schema::hasTable('book_pdf_requests')) {
                 $pendingPdfRequestsCount = BookPdfRequest::query()
-                    ->where('store_id', $storeId)
-                    ->where('status', 'pending')
+                    ->join('books', 'book_pdf_requests.book_id', '=', 'books.id')
+                    ->where('books.user_id', $storeId)
+                    ->where('book_pdf_requests.status', 'pending')
                     ->count();
             }
 

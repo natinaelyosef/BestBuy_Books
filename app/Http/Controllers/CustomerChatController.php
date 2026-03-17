@@ -96,69 +96,80 @@ class CustomerChatController extends Controller
     }
 
     /**
-     * Start a new conversation.
+     * Start a new conversation with a store.
      */
     public function startConversation(Request $request)
     {
-        $user = $request->user();
-        
-        $data = $request->validate([
+        $request->validate([
             'store_id' => 'required|exists:users,id',
+            'book_id' => 'nullable|exists:books,id',
             'subject' => 'nullable|string|max:255',
             'message' => 'required|string|max:2000',
-            'book_id' => 'nullable|exists:books,id',
         ]);
 
-        // Check if conversation already exists
-        $existingConversation = ChatConversation::where('customer_id', $user->id)
-            ->where('store_id', $data['store_id'])
-            ->when($data['book_id'] ?? null, function ($query, $bookId) {
-                $query->where('book_id', $bookId);
+        // Verify store exists and is a store owner
+        $store = User::where('id', $request->store_id)
+            ->where('account_type', 'store_owner')
+            ->first();
+
+        if (!$store) {
+            return back()->with('error', 'Invalid store selected.')->withInput();
+        }
+
+        // Check if conversation already exists between this customer and store
+        $existingConversation = ChatConversation::where('customer_id', $request->user()->id)
+            ->where('store_id', $request->store_id)
+            ->when($request->book_id, function ($query) use ($request) {
+                $query->where('book_id', $request->book_id);
             })
-            ->latest()
             ->first();
 
         if ($existingConversation) {
             // Add message to existing conversation
             ChatMessage::create([
                 'conversation_id' => $existingConversation->id,
-                'sender_id' => $user->id,
+                'sender_id' => $request->user()->id,
                 'sender_role' => 'customer',
-                'message' => $data['message'],
+                'message' => $request->message,
+                'is_read' => false,
             ]);
 
             $existingConversation->update([
                 'last_message_at' => now(),
-                'last_message' => $data['message'],
-                'last_message_sender_id' => $user->id,
+                'last_message' => $request->message,
+                'last_message_sender_id' => $request->user()->id,
             ]);
 
             return redirect()->route('chat.show', $existingConversation)
-                ->with('status', 'Message sent.');
+                ->with('success', 'Message sent to existing conversation.');
         }
 
         // Create new conversation
         $conversation = ChatConversation::create([
-            'customer_id' => $user->id,
-            'store_id' => $data['store_id'],
-            'book_id' => $data['book_id'] ?? null,
-            'subject' => $data['subject'] ?? 'New conversation',
+            'customer_id' => $request->user()->id,
+            'store_id' => $request->store_id,
+            'book_id' => $request->book_id,
+            'subject' => $request->subject,
             'status' => 'active',
-            'last_message_at' => now(),
-            'last_message' => $data['message'],
-            'last_message_sender_id' => $user->id,
         ]);
 
-        // Create initial message
+        // Add first message
         ChatMessage::create([
             'conversation_id' => $conversation->id,
-            'sender_id' => $user->id,
+            'sender_id' => $request->user()->id,
             'sender_role' => 'customer',
-            'message' => $data['message'],
+            'message' => $request->message,
+            'is_read' => false,
+        ]);
+
+        $conversation->update([
+            'last_message_at' => now(),
+            'last_message' => $request->message,
+            'last_message_sender_id' => $request->user()->id,
         ]);
 
         return redirect()->route('chat.show', $conversation)
-            ->with('status', 'Conversation started.');
+            ->with('success', 'Conversation started successfully.');
     }
 
     /**
@@ -251,91 +262,88 @@ class CustomerChatController extends Controller
     }
 
     /**
-     * Send a message in a conversation.
+     * Send a new message in a conversation.
      */
-    /**
- * Send a message in a conversation.
- */
-public function sendMessage(Request $request, ChatConversation $conversation)
-{
-    // Authorization
-    if ($conversation->customer_id !== $request->user()->id) {
-        return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
-    }
+    public function sendMessage(Request $request, ChatConversation $conversation)
+    {
+        // Authorization - only allow the customer who owns the conversation
+        if ($conversation->customer_id !== $request->user()->id) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
+        }
 
-    try {
-        $data = $request->validate([
-            'message' => 'nullable|string|max:2000',
+        // Validate request
+        $request->validate([
+            'message' => 'required_without:attachment|string|max:2000',
             'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt',
         ]);
 
-        if (empty($data['message']) && !$request->hasFile('attachment')) {
-            return response()->json(['success' => false, 'error' => 'Message or attachment required'], 422);
-        }
-
-        $messageData = [
+        $data = [
             'conversation_id' => $conversation->id,
             'sender_id' => $request->user()->id,
             'sender_role' => 'customer',
-            'message' => $data['message'] ?? '',
+            'is_read' => false,
         ];
 
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $path = $file->store('chat-attachments', 'public');
-            
-            $messageData['attachment_path'] = $path;
-            $messageData['attachment_name'] = $file->getClientOriginalName();
-            $messageData['attachment_size'] = $file->getSize();
-            $messageData['attachment_type'] = $file->getMimeType();
+        if ($request->filled('message')) {
+            $data['message'] = $request->message;
         }
 
-        $message = ChatMessage::create($messageData);
+        // Handle attachment
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $path = $file->store("chat-attachments/{$conversation->id}", 'public');
+            
+            $data['attachment_path'] = $path;
+            $data['attachment_name'] = $file->getClientOriginalName();
+            $data['attachment_size'] = $file->getSize();
+            $data['attachment_type'] = $file->getMimeType();
+        }
 
+        // Create message
+        $message = ChatMessage::create($data);
+
+        // Update conversation
         $conversation->update([
             'last_message_at' => now(),
-            'last_message' => $data['message'] ?? '[Attachment]',
+            'last_message' => $request->message ?? '[Attachment]',
             'last_message_sender_id' => $request->user()->id,
         ]);
 
         $message->load('sender');
 
-        return response()->json([
-            'success' => true,
-            'message' => [
-                'id' => $message->id,
-                'content' => $message->message,
-                'created_at' => $message->created_at->format('g:i A'),
-                'is_me' => true,
-                'attachment_url' => $message->attachment_url,
-                'attachment_name' => $message->attachment_name,
-                'is_image' => $message->isImage(),
-            ]
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'success' => false,
-            'error' => 'Validation failed: ' . implode(', ', $e->errors())
-        ], 422);
-    } catch (\Exception $e) {
-        Log::error('Send message error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
-        return response()->json([
-            'success' => false,
-            'error' => 'Failed to send message: ' . $e->getMessage()
-        ], 500);
-    }
-}
-
-    /**
-     * Mark messages as read.
-     */
-    public function markRead(Request $request, ChatConversation $conversation)
-    {
-        if ($conversation->customer_id !== $request->user()->id) {
-            return response()->json(['success' => false], 403);
+        // For AJAX request
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => [
+                    'id' => $message->id,
+                    'content' => $message->message,
+                    'created_at' => $message->created_at->format('Y-m-d H:i:s'),
+                    'formatted_time' => $message->created_at->format('g:i A'),
+                    'sender_id' => $message->sender_id,
+                    'sender_name' => $message->sender->name,
+                    'is_me' => true,
+                    'attachment_url' => $message->attachment_url,
+                    'attachment_name' => $message->attachment_name,
+                    'is_image' => $message->isImage(),
+                ]
+            ]);
         }
 
-        $conversation->messages()
+        return redirect()->route('chat.show', $conversation)
+            ->with('success', 'Message sent successfully.');
+    }
+
+    /**
+     * Mark messages as read via AJAX.
+     */
+    public function markAsRead(Request $request, ChatConversation $conversation)
+    {
+        if ($conversation->customer_id !== $request->user()->id) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $count = $conversation->messages()
             ->where('sender_id', '!=', $request->user()->id)
             ->where('is_read', false)
             ->update([
@@ -343,7 +351,10 @@ public function sendMessage(Request $request, ChatConversation $conversation)
                 'is_read_at' => now()
             ]);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'marked_count' => $count
+        ]);
     }
 
     /**
@@ -351,23 +362,28 @@ public function sendMessage(Request $request, ChatConversation $conversation)
      */
     public function pollMessages(Request $request, ChatConversation $conversation)
     {
+        // Authorization - only allow the customer who owns the conversation
         if ($conversation->customer_id !== $request->user()->id) {
-            return response()->json(['success' => false], 403);
+            return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
         }
 
         try {
-            $lastId = $request->input('last_id', 0);
-            
+            $lastId = $request->last_id ?? 0;
+
             $messages = $conversation->messages()
                 ->with('sender')
                 ->where('id', '>', $lastId)
-                ->orderBy('created_at', 'asc')
+                ->orderBy('id', 'asc')
                 ->get()
                 ->map(function ($message) use ($request) {
                     return [
                         'id' => $message->id,
                         'content' => $message->message,
-                        'created_at' => $message->created_at->format('g:i A'),
+                        'created_at' => $message->created_at->format('Y-m-d H:i:s'),
+                        'formatted_time' => $message->created_at->format('g:i A'),
+                        'sender_id' => $message->sender_id,
+                        'sender_name' => $message->sender->name,
+                        'sender_role' => $message->sender_role,
                         'is_me' => $message->sender_id === $request->user()->id,
                         'attachment_url' => $message->attachment_url,
                         'attachment_name' => $message->attachment_name,
@@ -379,8 +395,9 @@ public function sendMessage(Request $request, ChatConversation $conversation)
                 'success' => true,
                 'messages' => $messages
             ]);
+
         } catch (\Exception $e) {
-            Log::error('Poll messages error: ' . $e->getMessage());
+            Log::error('Customer poll messages error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error' => 'Failed to poll messages'

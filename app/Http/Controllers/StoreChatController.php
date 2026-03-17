@@ -46,14 +46,16 @@ class StoreChatController extends Controller
                 ->count();
         }
 
-        // Get store's books for filtering
-        $books = Book::where('user_id', $user->id)->get();
+        // Get store's books for filter
+        $storeBooks = Book::where('user_id', $user->id)
+            ->select('id', 'title')
+            ->get();
 
         return view('store.chat_list', [
             'conversations' => $conversations,
-            'books' => $books,
+            'storeBooks' => $storeBooks,
             'search' => $request->search,
-            'selected_book' => $request->book_id,
+            'book_filter' => $request->book_id,
             'unread_total' => $user->unreadMessagesCount(),
         ]);
     }
@@ -63,8 +65,10 @@ class StoreChatController extends Controller
      */
     public function show(Request $request, ChatConversation $conversation)
     {
-        // Authorization
-        if ($conversation->store_id !== $request->user()->id) {
+        $user = $request->user();
+        
+        // Authorization - only allow the store owner who owns the conversation
+        if ($conversation->store_id !== $user->id) {
             abort(403, 'Unauthorized access to this conversation.');
         }
 
@@ -72,25 +76,17 @@ class StoreChatController extends Controller
         $conversation->load(['customer', 'book']);
 
         // Mark messages as read
-        $conversation->markAsRead($request->user()->id);
+        $conversation->markAsRead($user->id);
 
         // Get messages
         $messages = $conversation->messages()
             ->with('sender')
-            ->get();
-
-        // Get other conversations for sidebar
-        $otherConversations = ChatConversation::with(['customer', 'book'])
-            ->where('store_id', $request->user()->id)
-            ->where('id', '!=', $conversation->id)
-            ->latest('updated_at')
-            ->limit(5)
+            ->orderBy('created_at', 'asc')
             ->get();
 
         return view('store.chat_room', [
             'conversation' => $conversation,
             'messages' => $messages,
-            'otherConversations' => $otherConversations,
         ]);
     }
 
@@ -237,10 +233,6 @@ public function pollMessages(Request $request, ChatConversation $conversation)
         ]);
     }
 
-    /**
-     * Poll for new messages.
- 
-        */
     public function startConversation(Request $request)
     {
         try {
@@ -260,11 +252,11 @@ public function pollMessages(Request $request, ChatConversation $conversation)
                 return back()->with('error', 'Invalid customer selected.')->withInput();
             }
 
-            // Check if conversation already exists
+            // Check if conversation already exists between this store and customer
             $existingConversation = ChatConversation::where('store_id', $request->user()->id)
                 ->where('customer_id', $request->customer_id)
-                ->when($request->book_id, function ($query, $bookId) {
-                    $query->where('book_id', $bookId);
+                ->when($request->book_id, function ($query) use ($request) {
+                    $query->where('book_id', $request->book_id);
                 })
                 ->first();
 

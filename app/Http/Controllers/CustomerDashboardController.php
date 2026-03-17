@@ -89,6 +89,11 @@ class CustomerDashboardController extends Controller
             'selectedGenre' => $selectedGenre,
             'selectedAvailability' => $selectedAvailability,
             'wishlistIds' => $wishlistIds,
+        ])->withViewData([
+            'breadcrumb' => [
+                ['url' => route('customer.dashboard'), 'label' => 'Customer Dashboard'],
+                ['url' => route('customer.books.index'), 'label' => 'Books'],
+            ]
         ]);
     }
 }

@@ -1,3 +1,69 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom dark mode styles for admin panel */
+[data-theme="dark"] {
+  --bs-body-bg: #121212;
+  --bs-body-color: #e0e0e0;
+  --bs-gray-900: #1a1a1a;
+  --bs-gray-800: #2d2d2d;
+  --bs-gray-700: #404040;
+}
+
+[data-theme="dark"] .bg-light {
+  --bs-bg-opacity: 1;
+  background-color: rgba(45, 45, 45, var(--bs-bg-opacity)) !important;
+}
+
+[data-theme="dark"] .card {
+  background-color: var(--bs-gray-800);
+  border: 1px solid var(--bs-gray-700);
+}
+
+[data-theme="dark"] .table {
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-bg: var(--bs-gray-800);
+  --bs-table-border-color: var(--bs-gray-700);
+}
+
+[data-theme="dark"] .form-control {
+  background-color: var(--bs-gray-800);
+  border-color: var(--bs-gray-700);
+  color: var(--bs-body-color);
+}
+
+[data-theme="dark"] .form-control:focus {
+  background-color: var(--bs-gray-800);
+  border-color: #86b7fe;
+  color: var(--bs-body-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+  color: var(--bs-body-color);
+  border-color: var(--bs-gray-700);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: var(--bs-gray-700);
+}
+
+[data-theme="dark"] .navbar {
+  background-color: var(--bs-gray-900) !important;
+}
+
+[data-theme="dark"] .sidebar {
+  background-color: var(--bs-gray-900) !important;
+}
+
+[data-theme="dark"] .status-pending { background-color: #ffd8a8 !important; color: #856404 !important; }
+[data-theme="dark"] .status-approved { background-color: #d4edda !important; color: #155724 !important; }
+[data-theme="dark"] .status-onway { background-color: #cce5ff !important; color: #004085 !important; }
+[data-theme="dark"] .status-delivered { background-color: #d1ecf1 !important; color: #0c5460 !important; }
+
+/* General status badge styles */
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-approved { background-color: #d4edda; color: #155724; }
+.status-onway { background-color: #cce5ff; color: #004085; }
+.status-delivered { background-color: #d1ecf1; color: #0c5460; }

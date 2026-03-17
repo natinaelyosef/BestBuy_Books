@@ -9,7 +9,7 @@
             <h1 class="h3 mb-1">Wishlisted Books</h1>
             <p class="text-muted mb-0">See which customers saved your books.</p>
         </div>
-        <a href="{{ route('manage.books') }}" class="btn btn-outline-primary">
+        <a href="{{ route('store.books.manage') }}" class="btn btn-outline-primary">
             <i class="bi bi-book"></i> Manage Books
         </a>
     </div>
@@ -67,7 +67,7 @@
                                 <td class="text-muted">{{ $item->created_at->format('M d, Y') }}</td>
                                 <td class="text-end">
                                     @if($item->book)
-                                        <a href="{{ route('books.edit', $item->book->id) }}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ route('store.books.edit', $item->book->id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-pencil"></i> Edit Book
                                         </a>
                                     @endif

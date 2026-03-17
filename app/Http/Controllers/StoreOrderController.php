@@ -3,115 +3,60 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Book;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class StoreOrderController extends Controller
 {
     public function index(Request $request)
     {
-        $storeId = $request->user()->id;
-        $statusFilter = $request->query('status', 'all');
-        $search = $request->query('search');
+        $orders = Order::where('store_id', Auth::id())
+            ->with(['orderItems.book', 'customer'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-        if (!$this->ordersAvailable()) {
-            return view('store.orders', [
-                'orders' => collect(),
-                'statusFilter' => $statusFilter,
-                'search' => $search,
-                'pendingCount' => 0,
-                'activeCount' => 0,
-                'completedCount' => 0,
-            ])->with('error', 'Orders are not available yet. Please run migrations.');
+        return view('store.orders.index', compact('orders'));
+    }
+
+    public function show(Order $order)
+    {
+        // Ensure the order belongs to the current store
+        if ($order->store_id !== Auth::id()) {
+            abort(403);
         }
 
-        $query = Order::query()
-            ->with(['customer', 'items.book'])
-            ->where('store_id', $storeId);
+        $order->load(['orderItems.book', 'customer']);
 
-        if ($statusFilter !== 'all') {
-            $query->where('status', $statusFilter);
-        }
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('order_number', 'like', '%' . $search . '%')
-                    ->orWhereHas('customer', function ($cq) use ($search) {
-                        $cq->where('name', 'like', '%' . $search . '%')
-                            ->orWhere('email', 'like', '%' . $search . '%');
-                    });
-            });
-        }
-
-        $orders = $query->latest('id')->get()->map(function (Order $order) {
-            $itemsCount = $order->items->sum('quantity');
-            $itemsPreview = $order->items
-                ->take(2)
-                ->map(fn ($item) => $item->book?->title ?? 'Unknown')
-                ->implode(', ');
-
-            $order->items_count = $itemsCount;
-            $order->items_preview = $itemsPreview;
-            $order->status_label = $this->statusLabel($order->status);
-
-            return $order;
-        });
-
-        $pendingCount = $orders->where('status', 'pending')->count();
-        $activeCount = $orders->whereIn('status', ['approved', 'preparing', 'ready', 'out_for_delivery'])->count();
-        $completedCount = $orders->whereIn('status', ['delivered', 'completed'])->count();
-
-        return view('store.orders', [
-            'orders' => $orders,
-            'statusFilter' => $statusFilter,
-            'search' => $search,
-            'pendingCount' => $pendingCount,
-            'activeCount' => $activeCount,
-            'completedCount' => $completedCount,
-        ]);
+        return view('store.orders.show', compact('order'));
     }
 
     public function updateStatus(Request $request, Order $order)
     {
-        if (!$this->ordersAvailable()) {
-            return redirect()
-                ->back()
-                ->with('error', 'Orders are not available yet. Please run migrations.');
+        // Only store owners can update order status
+        if ($order->store_id !== Auth::id()) {
+            abort(403);
         }
 
-        if ($order->store_id !== $request->user()->id) {
-            abort(403, 'Unauthorized');
-        }
-
-        $data = $request->validate([
-            'status' => 'required|in:pending,approved,preparing,ready,out_for_delivery,delivered,completed,cancelled',
-            'store_notes' => 'nullable|string|max:1000',
+        $request->validate([
+            'status' => 'required|in:approved,onway,delivered,cancelled'
         ]);
 
-        $order->update($data);
+        $previousStatus = $order->status;
+        $order->update(['status' => $request->status]);
 
-        return redirect()
-            ->back()
-            ->with('messages', ['Order updated successfully.']);
-    }
+        // Add notification or log if needed
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($order)
+            ->withProperties([
+                'previous_status' => $previousStatus,
+                'new_status' => $request->status
+            ])
+            ->log('Order status updated');
 
-    private function statusLabel(string $status): string
-    {
-        return match ($status) {
-            'pending' => 'Pending',
-            'approved' => 'Approved',
-            'preparing' => 'Preparing',
-            'ready' => 'Ready',
-            'out_for_delivery' => 'Out for Delivery',
-            'delivered' => 'Delivered',
-            'completed' => 'Completed',
-            'cancelled' => 'Declined',
-            default => ucfirst(str_replace('_', ' ', $status)),
-        };
-    }
-
-    private function ordersAvailable(): bool
-    {
-        return Schema::hasTable('orders') && Schema::hasTable('order_items');
+        return redirect()->back()->with('success', 'Order status updated successfully!');
     }
 }

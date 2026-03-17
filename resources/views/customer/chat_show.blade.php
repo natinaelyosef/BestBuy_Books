@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', 'Chat - BookHub')
+@section('title', 'Chat - BestBuy_Books')
 
 @section('content')
 <section class="chat-room">

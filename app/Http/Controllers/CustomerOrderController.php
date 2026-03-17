@@ -3,176 +3,116 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use Carbon\Carbon;
+use App\Models\OrderItem;
+use App\Models\Book;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerOrderController extends Controller
 {
     public function index(Request $request)
     {
-        $statusFilter = $request->query('status', 'all');
-        $timeFilter = $request->query('time', 'all');
+        $orders = Order::where('customer_id', Auth::id())
+            ->with(['orderItems.book', 'store'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-        if (!$this->ordersAvailable()) {
-            return view('customer.order_history', [
-                'orders' => collect(),
-                'activeRentals' => collect(),
-                'statusFilter' => $statusFilter,
-                'timeFilter' => $timeFilter,
-            ])->with('error', 'Orders are not available yet. Please run migrations.');
+        return view('customer.orders.index', compact('orders'));
+    }
+
+    public function create(Request $request)
+    {
+        $cartItems = Auth::user()->cartItems()->with('book.store')->get();
+        
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('customer.cart')->with('error', 'Your cart is empty!');
         }
 
-        $query = Order::query()
-            ->with(['items.book', 'store'])
-            ->where('customer_id', $request->user()->id);
+        // Group cart items by store
+        $groupedItems = $cartItems->groupBy('book.store_id');
+        
+        return view('customer.orders.checkout', compact('groupedItems'));
+    }
 
-        if ($statusFilter !== 'all') {
-            $query->where('status', $statusFilter);
-        }
-
-        if ($timeFilter !== 'all') {
-            $cutoff = $timeFilter === '7days' ? now()->subDays(7) : now()->subDays(30);
-            $query->where('created_at', '>=', $cutoff);
-        }
-
-        $orders = $query->latest('id')->get()->map(function (Order $order) {
-            $itemsCount = $order->items->sum('quantity');
-            $itemsPreview = $order->items
-                ->take(2)
-                ->map(function ($item) {
-                    return $item->book?->title ?? 'Unknown';
-                })
-                ->implode(', ');
-
-            return [
-                'id' => $order->id,
-                'order_number' => $order->order_number,
-                'created_at' => Carbon::parse($order->created_at),
-                'order_type' => $order->order_type,
-                'status' => $order->status,
-                'status_label' => $this->statusLabel($order->status),
-                'items_count' => $itemsCount,
-                'items_preview' => $itemsPreview,
-                'store_name' => $order->store?->name ?? 'BookHub',
-                'total_amount' => $order->total_amount,
-            ];
-        });
-
-        $activeRentals = $orders->filter(function ($order) {
-            return $order['order_type'] === 'rent' && !in_array($order['status'], ['completed', 'cancelled'], true);
-        })->values();
-
-        return view('customer.order_history', [
-            'orders' => $orders,
-            'activeRentals' => $activeRentals,
-            'statusFilter' => $statusFilter,
-            'timeFilter' => $timeFilter,
+    public function store(Request $request)
+    {
+        $request->validate([
+            'delivery_address' => 'required|string|max:500',
+            'receiver_name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'notes' => 'nullable|string|max:1000',
         ]);
-    }
 
-    public function show(Request $request, $orderId)
-    {
-        if (!$this->ordersAvailable()) {
-            return redirect()
-                ->route('orders.index')
-                ->with('error', 'Orders are not available yet. Please run migrations.');
+        $cartItems = Auth::user()->cartItems()->with('book.store')->get();
+        
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('customer.cart')->with('error', 'Your cart is empty!');
         }
 
-        $order = Order::query()
-            ->with(['items.book', 'store'])
-            ->where('customer_id', $request->user()->id)
-            ->find($orderId);
+        // Group cart items by store
+        $groupedItems = $cartItems->groupBy('book.store_id');
 
-        if (!$order) {
-            return redirect()
-                ->route('orders.index')
-                ->with('error', 'Order not found.');
+        foreach ($groupedItems as $storeId => $items) {
+            // Calculate total amount for this order
+            $totalAmount = $items->sum(function($item) {
+                return $item->book->price * $item->quantity;
+            });
+
+            // Create order
+            $order = Order::create([
+                'customer_id' => Auth::id(),
+                'store_id' => $storeId,
+                'status' => 'pending',
+                'total_amount' => $totalAmount,
+                'delivery_address' => $request->delivery_address,
+                'receiver_name' => $request->receiver_name,
+                'phone_number' => $request->phone_number,
+                'notes' => $request->notes,
+            ]);
+
+            // Create order items
+            foreach ($items as $cartItem) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'book_id' => $cartItem->book_id,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->book->price,
+                ]);
+
+                // Remove item from cart
+                $cartItem->delete();
+            }
         }
 
-        $orderData = [
-            'id' => $order->id,
-            'order_number' => $order->order_number,
-            'created_at' => Carbon::parse($order->created_at),
-            'order_type' => $order->order_type,
-            'status' => $order->status,
-            'status_label' => $this->statusLabel($order->status),
-            'total_amount' => $order->total_amount,
-            'delivery_option' => $order->delivery_option,
-            'delivery_fee' => $order->delivery_fee,
-            'notes' => $order->notes,
-            'store_notes' => $order->store_notes,
-            'store' => [
-                'store_name' => $order->store?->name ?? 'BookHub',
-                'address' => null,
-                'city' => null,
-                'phone' => $order->store?->phone,
-                'email' => $order->store?->email,
-            ],
-        ];
-
-        $items = $order->items->map(function ($item) {
-            return [
-                'book' => $item->book,
-                'item_type' => $item->item_type,
-                'quantity' => $item->quantity,
-                'rental_days' => $item->rental_days,
-                'price' => $item->price,
-            ];
-        })->filter(fn ($item) => $item['book'])->values();
-
-        $subtotal = $items->sum('price');
-
-        return view('customer.order_detail', [
-            'order' => $orderData,
-            'items' => $items,
-            'subtotal' => $subtotal,
-            'delivery' => null,
-        ]);
+        return redirect()->route('customer.orders.index')->with('success', 'Order placed successfully!');
     }
 
-    public function markFinished(Request $request, $orderId)
+    public function show(Order $order)
     {
-        if (!$this->ordersAvailable()) {
-            return redirect()
-                ->route('orders.index')
-                ->with('error', 'Orders are not available yet. Please run migrations.');
+        // Ensure the order belongs to the current customer
+        if ($order->customer_id !== Auth::id()) {
+            abort(403);
         }
 
-        $order = Order::query()
-            ->where('customer_id', $request->user()->id)
-            ->find($orderId);
+        $order->load(['orderItems.book', 'store']);
 
-        if (!$order) {
-            return redirect()
-                ->route('orders.index')
-                ->with('error', 'Order not found.');
+        return view('customer.orders.show', compact('order'));
+    }
+
+    public function updateStatus(Request $request, Order $order)
+    {
+        // Only customers can mark orders as received
+        if ($order->customer_id !== Auth::id()) {
+            abort(403);
         }
 
-        $order->update(['status' => 'completed']);
+        if ($order->status !== 'delivered') {
+            return redirect()->back()->with('error', 'Cannot mark as received. Order is not delivered yet.');
+        }
 
-        return redirect()
-            ->back()
-            ->with('status', 'Order marked as completed.');
-    }
+        $order->update(['status' => 'received']);
 
-    private function statusLabel(string $status): string
-    {
-        return match ($status) {
-            'pending' => 'Pending',
-            'approved' => 'Approved',
-            'preparing' => 'Preparing',
-            'ready' => 'Ready',
-            'out_for_delivery' => 'Out for Delivery',
-            'delivered' => 'Delivered',
-            'completed' => 'Completed',
-            'cancelled' => 'Declined',
-            default => ucfirst(str_replace('_', ' ', $status)),
-        };
-    }
-
-    private function ordersAvailable(): bool
-    {
-        return Schema::hasTable('orders') && Schema::hasTable('order_items');
+        return redirect()->back()->with('success', 'Order marked as received!');
     }
 }

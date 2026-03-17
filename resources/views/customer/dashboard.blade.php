@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', 'Browse Books · BookHub')
+@section('title', 'Browse Books · BestBuy_Books')
 
 @section('extra_css')
 <style>
@@ -221,7 +221,7 @@
     <div class="book-img">
         @php
             $isWished = in_array((int) $book->id, $wishlistIds, true);
-            $wishlistRoute = $isWished ? route('wishlist.remove', $book->id) : route('wishlist.add', $book->id);
+            $wishlistRoute = $isWished ? route('customer.wishlist.remove', $book->id) : route('customer.wishlist.add', $book->id);
         @endphp
         <a href="{{ $wishlistRoute }}"
            class="book-wish {{ $isWished ? 'active' : '' }}"
@@ -229,7 +229,7 @@
             <i class="bi {{ $isWished ? 'bi-heart-fill' : 'bi-heart' }}"></i>
         </a>
 
-        <a href="{{ route('books.show', $book->id) }}" class="quick-view">
+        <a href="{{ route('customer.books.show', $book->id) }}" class="quick-view">
             <i class="bi bi-eye"></i> Quick View
         </a>
 
@@ -288,7 +288,7 @@
 
         <div class="book-actions-3">
             @if($book->available_rent > 0)
-            <a href="{{ route('cart.add.rent', $book->id) }}" class="btn btn-rent">
+            <a href="{{ route('customer.cart.add.rent', $book->id) }}" class="btn btn-rent">
                 <i class="bi bi-arrow-repeat"></i> Rent
             </a>
             @else
@@ -298,7 +298,7 @@
             @endif
 
             @if($book->available_sale > 0)
-            <a href="{{ route('cart.add.buy', $book->id) }}" class="btn btn-buy">
+            <a href="{{ route('customer.cart.add.buy', $book->id) }}" class="btn btn-buy">
                 <i class="bi bi-bag-check"></i> Buy
             </a>
             @else
@@ -307,7 +307,7 @@
             </span>
             @endif
 
-            <a href="{{ route('books.show', $book->id) }}" class="btn-view">
+            <a href="{{ route('customer.books.show', $book->id) }}" class="btn-view">
                 <i class="bi bi-eye-fill"></i>
             </a>
         </div>

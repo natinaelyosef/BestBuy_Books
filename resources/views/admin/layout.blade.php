@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Admin') - BookHub</title>
+    <title>@yield('title', 'Admin') - BestBuy_Books</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -54,7 +54,7 @@
             </button>
             <a class="topbar-brand" href="{{ route('admin.dashboard') }}">
                 <span class="brand-icon"><i class="bi bi-shield-lock-fill"></i></span>
-                <span class="brand-text">BookHub Admin</span>
+                <span class="brand-text">BestBuy_Books Admin</span>
             </a>
         </div>
         <div class="topbar-right">
@@ -126,7 +126,7 @@
     @endphp
 
     <div class="app-shell">
-        <x-app-sidebar id="sidebar" brand="BookHub Admin" brandIcon="bi bi-shield-lock-fill" :sections="$adminSections">
+        <x-app-sidebar id="sidebar" brand="BestBuy_Books Admin" brandIcon="bi bi-shield-lock-fill" :sections="$adminSections">
             <div class="sidebar-user">
                 <div class="user-avatar">
                     {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}

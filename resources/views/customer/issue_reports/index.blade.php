@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', 'Issue Reports - BookHub')
+@section('title', 'Issue Reports - BestBuy_Books')
 
 @section('content')
 <section class="issue-shell">
@@ -9,7 +9,7 @@
             <h1>Your Issue Reports</h1>
             <p>Track the status of your submitted issues.</p>
         </div>
-        <a href="{{ route('issue-reports.create') }}" class="btn-primary">
+        <a href="{{ route('customer.issue-reports.create') }}" class="btn-primary">
             <i class="bi bi-plus-circle"></i>
             New Report
         </a>
@@ -17,7 +17,7 @@
 
     <div class="issue-list">
         @forelse($reports as $report)
-            <a href="{{ route('issue-reports.show', $report) }}" class="issue-card">
+            <a href="{{ route('customer.issue-reports.show', $report) }}" class="issue-card">
                 <div>
                     <h3>{{ $report->subject }}</h3>
                     <p>{{ \Illuminate\Support\Str::limit($report->description, 110) }}</p>
@@ -33,7 +33,7 @@
                 <i class="bi bi-flag"></i>
                 <h3>No reports yet</h3>
                 <p>If something is wrong, submit a report and our admins will help.</p>
-                <a href="{{ route('issue-reports.create') }}" class="btn-primary">
+                <a href="{{ route('customer.issue-reports.create') }}" class="btn-primary">
                     <i class="bi bi-plus-circle"></i> Create Report
                 </a>
             </div>

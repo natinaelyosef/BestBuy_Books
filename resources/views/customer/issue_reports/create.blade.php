@@ -1,6 +1,6 @@
 @extends('customer.base')
 
-@section('title', 'Report an Issue - BookHub')
+@section('title', 'Report an Issue - BestBuy_Books')
 
 @section('content')
 <section class="issue-form-shell">
@@ -9,12 +9,12 @@
             <h1>Report an Issue</h1>
             <p>Provide details so our admin team can help quickly.</p>
         </div>
-        <a href="{{ route('issue-reports.index') }}" class="btn-secondary">
+        <a href="{{ route('customer.issue-reports.index') }}" class="btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Reports
         </a>
     </div>
 
-    <form method="POST" action="{{ route('issue-reports.store') }}" class="issue-form" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('customer.issue-reports.store') }}" class="issue-form" enctype="multipart/form-data">
         @csrf
         <label class="field">
             <span>Subject</span>

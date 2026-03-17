@@ -73,11 +73,11 @@
                     <td>${{ number_format($book->rental_price, 2) }}</td>
                     <td>${{ number_format($book->sale_price, 2) }}</td>
                     <td class="text-nowrap">
-                        <a href="{{ route('books.edit', $book->id) }}" class="btn btn-outline-primary btn-sm me-2">
+                        <a href="{{ route('store.books.edit', $book->id) }}" class="btn btn-outline-primary btn-sm me-2">
                             <i class="far fa-edit"></i> edit
                         </a>
 
-                        <form action="{{ route('books.destroy', $book->id) }}" method="post" class="d-inline">
+                        <form action="{{ route('store.books.destroy', $book->id) }}" method="post" class="d-inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" 

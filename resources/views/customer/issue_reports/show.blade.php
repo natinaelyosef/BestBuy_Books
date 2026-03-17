@@ -1,12 +1,12 @@
 @extends('customer.base')
 
-@section('title', 'Issue Report - BookHub')
+@section('title', 'Issue Report - BestBuy_Books')
 
 @section('content')
 <section class="issue-detail">
     <div class="detail-head">
         <div>
-            <a href="{{ route('issue-reports.index') }}" class="back-link"><i class="bi bi-arrow-left"></i> Back to Reports</a>
+            <a href="{{ route('customer.issue-reports.index') }}" class="back-link"><i class="bi bi-arrow-left"></i> Back to Reports</a>
             <h1>{{ $report->subject }}</h1>
             <p>Created {{ $report->created_at->format('M d, Y H:i') }}</p>
         </div>

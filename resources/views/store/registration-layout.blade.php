@@ -173,15 +173,15 @@
                     [
                         'label' => 'Order Management',
                         'icon' => 'bi bi-receipt',
-                        'route' => 'store.orders',
-                        'active' => request()->routeIs('store.orders'),
+                        'route' => 'store.orders.index',
+                        'active' => request()->routeIs('store.orders.*'),
                         'badge' => $pendingOrders > 0 ? $pendingOrders : null,
                     ],
                     [
                         'label' => 'Wishlisted Books',
                         'icon' => 'bi bi-heart',
-                        'route' => 'store.wishlist',
-                        'active' => request()->routeIs('store.wishlist'),
+                        'route' => 'store.wishlist.index',
+                        'active' => request()->routeIs('store.wishlist.*'),
                         'badge' => $wishlistItems > 0 ? $wishlistItems : null,
                     ],
                     [
@@ -253,8 +253,8 @@
                     [
                         'label' => 'Manage Books',
                         'icon' => 'bi bi-pencil-square',
-                        'route' => 'manage.books',
-                        'active' => request()->routeIs('manage.books'),
+                        'route' => 'store.books.manage',
+                        'active' => request()->routeIs('store.books.*'),
                     ],
                 ],
             ],
@@ -262,7 +262,7 @@
     @endphp
 
     <div class="app-shell">
-        <x-app-sidebar id="sidebar" brand="My Book Store" brandIcon="bi bi-shop" :sections="$sidebarSections">
+        <x-app-sidebar id="sidebar" brand="BestBuy_Books" brandIcon="bi bi-shop" :sections="$sidebarSections">
             <div class="sidebar-user">
                 <div class="user-avatar">
                     {{ strtoupper(substr($currentDisplayName ?? ($accountOwner ?? Auth::user()->username ?? 'U'), 0, 1)) }}

@@ -28,12 +28,16 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse|\Illuminate\Http\Response
     {
         $request->authenticate();
         $request->session()->regenerate();
 
         $redirectTo = $this->redirectPathForAccountType($request->user()?->account_type);
+        if ($request->header('X-Inertia')) {
+            return Inertia::location(url($redirectTo));
+        }
+
         return redirect()->intended($redirectTo);
     }
 

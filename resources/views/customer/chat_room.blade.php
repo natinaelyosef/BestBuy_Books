@@ -4,7 +4,7 @@
 <div class="container-fluid" style="max-width: 1200px;">
     <!-- Back Button -->
     <div class="mb-3">
-        <a href="{{ route('chat.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('customer.chat.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Back to Chats
         </a>
     </div>

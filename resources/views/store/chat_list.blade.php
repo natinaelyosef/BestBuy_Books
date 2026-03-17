@@ -37,8 +37,8 @@
                 <div class="col-md-4">
                     <select name="book_id" class="form-select">
                         <option value="">All Books</option>
-                        @foreach($books as $book)
-                            <option value="{{ $book->id }}" {{ $selected_book == $book->id ? 'selected' : '' }}>
+                        @foreach($storeBooks as $book)
+                            <option value="{{ $book->id }}" {{ $book_filter == $book->id ? 'selected' : '' }}>
                                 {{ $book->title }}
                             </option>
                         @endforeach

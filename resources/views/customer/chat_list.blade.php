@@ -58,7 +58,7 @@
                 <div class="conversation-item mb-3" 
                      data-unread="{{ $conv->unread_count > 0 ? 'true' : 'false' }}"
                      data-search="{{ strtolower($conv->store->name ?? '') }} {{ strtolower($conv->subject ?? '') }}">
-                    <a href="{{ route('chat.show', $conv) }}" class="text-decoration-none">
+                    <a href="{{ route('customer.chat.show', $conv) }}" class="text-decoration-none">
                         <div class="card border-0 shadow-sm hover-shadow {{ $conv->unread_count > 0 ? 'border-start border-danger border-4' : '' }}">
                             <div class="card-body">
                                 <div class="d-flex align-items-start gap-3">
@@ -136,7 +136,7 @@
                 <h5 class="modal-title">Start New Chat</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('chat.start') }}" method="POST">
+            <form action="{{ route('customer.chat.start') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">

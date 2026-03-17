@@ -70,10 +70,10 @@
                                 </td>
                                 <td class="text-muted small">{{ $book->updated_at->format('M d, Y') }}</td>
                                 <td class="text-end">
-                                    <a href="{{ route('books.edit', $book->id) }}" class="btn btn-outline-primary btn-sm me-1">
+                                    <a href="{{ route('store.books.edit', $book->id) }}" class="btn btn-outline-primary btn-sm me-1">
                                         <i class="bi bi-pencil"></i> Edit
                                     </a>
-                                    <form action="{{ route('books.destroy', $book->id) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('store.books.destroy', $book->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this book permanently?');">

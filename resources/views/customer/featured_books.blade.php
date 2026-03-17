@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookHub - Featured Books</title>
+    <title>BestBuy_Books - Featured Books</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -401,7 +401,7 @@
         <div class="container nav-container">
             <div class="logo">
                 <i class="fas fa-book"></i>
-                BookHub Store
+                BestBuy_Books Store
             </div>
             <div class="nav-links">
                 <div class="nav-item">

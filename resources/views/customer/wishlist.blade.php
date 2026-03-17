@@ -21,7 +21,7 @@
     <div class="wl-grid">
         @foreach($wishlistBooks as $book)
         <article class="wl-card" style="--i:{{ $loop->index }};">
-            <a href="{{ route('books.show', $book->id) }}" class="wl-media">
+            <a href="{{ route('customer.books.show', $book->id) }}" class="wl-media">
                 @if($book->cover_image_path)
                 <img src="{{ asset($book->cover_image_path) }}" alt="{{ $book->title }}">
                 @else
@@ -66,20 +66,20 @@
                 </div>
 
                 <div class="wl-actions">
-                    <a href="{{ route('books.show', $book->id) }}" class="wl-btn wl-btn-ghost">
+                    <a href="{{ route('customer.books.show', $book->id) }}" class="wl-btn wl-btn-ghost">
                         <i class="bi bi-eye-fill"></i> View
                     </a>
                     @if($book->available_rent > 0)
-                    <a href="{{ route('cart.add.rent', $book->id) }}" class="wl-btn wl-btn-rent">
+                    <a href="{{ route('customer.cart.add.rent', $book->id) }}" class="wl-btn wl-btn-rent">
                         <i class="bi bi-arrow-left-right"></i> Rent
                     </a>
                     @endif
                     @if($book->available_sale > 0)
-                    <a href="{{ route('cart.add.buy', $book->id) }}" class="wl-btn wl-btn-buy">
+                    <a href="{{ route('customer.cart.add.buy', $book->id) }}" class="wl-btn wl-btn-buy">
                         <i class="bi bi-bag-check-fill"></i> Buy
                     </a>
                     @endif
-                    <a href="{{ route('wishlist.remove', $book->id) }}" class="wl-btn wl-btn-danger" onclick="return confirm('Remove this book from your wishlist?');">
+                    <a href="{{ route('customer.wishlist.remove', $book->id) }}" class="wl-btn wl-btn-danger" onclick="return confirm('Remove this book from your wishlist?');">
                         <i class="bi bi-trash3-fill"></i> Remove
                     </a>
                 </div>
@@ -92,10 +92,10 @@
         <a href="{{ route('customer.dashboard') }}" class="wl-footer-btn wl-footer-primary">
             <i class="bi bi-plus-circle-fill"></i> Add More Books
         </a>
-        <a href="{{ route('cart.index') }}" class="wl-footer-btn wl-footer-success">
+        <a href="{{ route('customer.cart.index') }}" class="wl-footer-btn wl-footer-success">
             <i class="bi bi-cart-check-fill"></i> Open Cart
         </a>
-        <a href="{{ route('wishlist.clear') }}" class="wl-footer-btn wl-footer-danger" onclick="return confirm('Clear all items from wishlist?');">
+        <a href="{{ route('customer.wishlist.clear') }}" class="wl-footer-btn wl-footer-danger" onclick="return confirm('Clear all items from wishlist?');">
             <i class="bi bi-trash-fill"></i> Clear All
         </a>
     </div>
