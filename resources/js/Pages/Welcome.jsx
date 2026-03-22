@@ -612,7 +612,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 <div className="header-inner">
                     <a className="logo" onClick={redirectToLogin}>
                         <div className="logo-icon"><i className="bi bi-book-half"></i></div>
-                        <span className="logo-text">Book<span>Hub</span></span>
+                        <span className="logo-text">BestBuy_<span>Books</span></span>
                     </a>
 
                     <div className="header-search">

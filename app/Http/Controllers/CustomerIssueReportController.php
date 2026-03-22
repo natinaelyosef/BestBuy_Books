@@ -53,7 +53,7 @@ class CustomerIssueReportController extends Controller
         IssueReport::create($reportData);
 
         return redirect()
-            ->route('issue-reports.index')
+            ->route('customer.issue-reports.index')
             ->with('status', 'Issue report submitted.');
     }
 

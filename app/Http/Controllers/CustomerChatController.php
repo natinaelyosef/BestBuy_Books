@@ -140,7 +140,7 @@ class CustomerChatController extends Controller
                 'last_message_sender_id' => $request->user()->id,
             ]);
 
-            return redirect()->route('chat.show', $existingConversation)
+            return redirect()->route('customer.chat.show', ['conversation' => $existingConversation->id])
                 ->with('success', 'Message sent to existing conversation.');
         }
 
@@ -168,7 +168,7 @@ class CustomerChatController extends Controller
             'last_message_sender_id' => $request->user()->id,
         ]);
 
-        return redirect()->route('chat.show', $conversation)
+        return redirect()->route('customer.chat.show', ['conversation' => $conversation->id])
             ->with('success', 'Conversation started successfully.');
     }
 
@@ -211,7 +211,7 @@ class CustomerChatController extends Controller
                 ]);
             }
             
-            return redirect()->route('chat.show', $existingConversation);
+            return redirect()->route('customer.chat.show', ['conversation' => $existingConversation->id]);
         }
         
         // Create new conversation
@@ -257,7 +257,7 @@ class CustomerChatController extends Controller
             ]);
         }
         
-        return redirect()->route('chat.show', $conversation)
+        return redirect()->route('customer.chat.show', ['conversation' => $conversation->id])
             ->with('status', 'Conversation started with the store owner.');
     }
 
@@ -330,7 +330,7 @@ class CustomerChatController extends Controller
             ]);
         }
 
-        return redirect()->route('chat.show', $conversation)
+        return redirect()->route('customer.chat.show', ['conversation' => $conversation->id])
             ->with('success', 'Message sent successfully.');
     }
 

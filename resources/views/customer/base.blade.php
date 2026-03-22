@@ -758,7 +758,7 @@
     <!-- Logo -->
     <a href="{{ route('customer.dashboard') }}" class="logo">
       <div class="logo-icon"><i class="bi bi-book-half"></i></div>
-      <span class="logo-text">Book<span>Hub</span></span>
+      <span class="logo-text">BestBuy_<span>Books</span></span>
     </a>
 
     <!-- Centre search (hidden mobile) -->
@@ -897,11 +897,11 @@
     </form>
 
     <div class="hero-stats">
-      <div class="hero-stat"><i class="bi bi-book-fill"></i> <strong>12K+</strong> books</div>
+      <div class="hero-stat"><i class="bi bi-book-fill"></i> <strong></strong> books</div>
       <div class="stat-sep"></div>
-      <div class="hero-stat"><i class="bi bi-shop"></i> <strong>340+</strong> partner stores</div>
+      <div class="hero-stat"><i class="bi bi-shop"></i> <strong></strong> partner stores</div>
       <div class="stat-sep"></div>
-      <div class="hero-stat"><i class="bi bi-people-fill"></i> <strong>8K+</strong> readers</div>
+      <div class="hero-stat"><i class="bi bi-people-fill"></i> <strong></strong> readers</div>
       <div class="stat-sep"></div>
       <div class="hero-stat"><i class="bi bi-shield-check"></i> <strong>Secure</strong> checkout</div>
     </div>
